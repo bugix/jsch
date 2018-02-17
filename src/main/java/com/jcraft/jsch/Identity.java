@@ -56,12 +56,6 @@ public interface Identity {
     byte[] getSignature(byte[] data);
 
     /**
-     * @see #setPassphrase(byte[] passphrase)
-     * @deprecated The decryption should be done automatically in #setPassphase(byte[] passphrase)
-     */
-    boolean decrypt();
-
-    /**
      * Returns the name of the key algorithm.
      *
      * @return "ssh-rsa" or "ssh-dss"

@@ -2538,7 +2538,7 @@ public class ChannelSftp extends ChannelSession {
         buf.putByte(type);
     }
 
-    private void putHEAD(byte type, int length) throws Exception {
+    private void putHEAD(byte type, int length) {
         putHEAD(buf, type, length);
     }
 

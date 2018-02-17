@@ -79,7 +79,7 @@ public class Compression implements Compressing {
                     outputlen += tmp;
                     break;
                 default:
-                    System.err.println("compress: deflate returnd " + status);
+                    System.err.println("compress: deflate returned " + status);
             }
         }
         while (stream.avail_out == 0);

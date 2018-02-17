@@ -1220,27 +1220,6 @@ public abstract class KeyPair {
         return key;
     }
 
-    /**
-     * @deprecated use #writePrivateKey(java.io.OutputStream out, byte[] passphrase)
-     */
-    public void setPassphrase(String passphrase) {
-        if (passphrase == null || passphrase.length() == 0) {
-            setPassphrase((byte[]) null);
-        } else {
-            setPassphrase(Util.str2byte(passphrase));
-        }
-    }
-
-    /**
-     * @deprecated use #writePrivateKey(String name, byte[] passphrase)
-     */
-    public void setPassphrase(byte[] passphrase) {
-        if (passphrase != null && passphrase.length == 0) {
-            passphrase = null;
-        }
-        this.passphrase = passphrase;
-    }
-
     public boolean isEncrypted() {
         return encrypted;
     }

@@ -685,7 +685,7 @@ public abstract class Channel implements Runnable {
             max_buffer_size = size;
         }
 
-        MyPipedInputStream(int size, int max_buffer_size) throws IOException {
+        MyPipedInputStream(int size, int max_buffer_size) {
             this(size);
             this.max_buffer_size = max_buffer_size;
         }

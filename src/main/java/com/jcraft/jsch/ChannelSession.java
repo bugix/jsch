@@ -109,17 +109,6 @@ class ChannelSession extends Channel {
     }
 
     /**
-     * @see #setEnv(String, String)
-     * @see #setEnv(byte[], byte[])
-     * @deprecated Use {@link #setEnv(String, String)} or {@link #setEnv(byte[], byte[])} instead.
-     */
-    public void setEnv(Hashtable env) {
-        synchronized (this) {
-            this.env = env;
-        }
-    }
-
-    /**
      * Allocate a Pseudo-Terminal.
      * Refer to RFC4254 6.2. Requesting a Pseudo-Terminal.
      *

@@ -79,14 +79,6 @@ class IdentityFile implements Identity {
     }
 
     /**
-     * @see #setPassphrase(byte[] passphrase)
-     * @deprecated This method should not be invoked.
-     */
-    public boolean decrypt() {
-        throw new RuntimeException("not implemented");
-    }
-
-    /**
      * Returns the name of the key algorithm.
      *
      * @return "ssh-rsa" or "ssh-dss"

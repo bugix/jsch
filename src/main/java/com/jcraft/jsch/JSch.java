@@ -488,24 +488,6 @@ public class JSch {
     }
 
     /**
-     * @deprecated use #removeIdentity(Identity identity)
-     */
-    public void removeIdentity(String name) {
-        Vector identities = identityRepository.getIdentities();
-        for (int i = 0; i < identities.size(); i++) {
-            Identity identity = (Identity) (identities.elementAt(i));
-            if (!identity.getName().equals(name)) {
-                continue;
-            }
-            if (identityRepository instanceof LocalIdentityRepository) {
-                ((LocalIdentityRepository) identityRepository).remove(identity);
-            } else {
-                identityRepository.remove(identity.getPublicKeyBlob());
-            }
-        }
-    }
-
-    /**
      * Removes the identity from identityRepository.
      *
      * @param identity the indentity to be removed.
