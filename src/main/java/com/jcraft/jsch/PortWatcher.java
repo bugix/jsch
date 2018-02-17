@@ -8,8 +8,8 @@ modification, are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice,
      this list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright 
-     notice, this list of conditions and the following disclaimer in 
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the distribution.
 
   3. The names of the authors may not be used to endorse or promote products
@@ -29,181 +29,188 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-import java.net.*;
-import java.io.*;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Vector;
 
-class PortWatcher implements Runnable{
-  private static java.util.Vector pool=new java.util.Vector();
-  private static InetAddress anyLocalAddress=null;
-  static{
-    // 0.0.0.0
-/*
-    try{ anyLocalAddress=InetAddress.getByAddress(new byte[4]); }
-    catch(UnknownHostException e){
-    }
-*/
-    try{ anyLocalAddress=InetAddress.getByName("0.0.0.0"); }
-    catch(UnknownHostException e){
-    }
-  }
+class PortWatcher implements Runnable {
+    private static final Vector<PortWatcher> pool = new Vector<>();
+    private static InetAddress anyLocalAddress;
 
-  Session session;
-  int lport;
-  int rport;
-  String host;
-  InetAddress boundaddress;
-  Runnable thread;
-  ServerSocket ss;
-  int connectTimeout=0;
+    static {
+        try {
+            anyLocalAddress = InetAddress.getByName("0.0.0.0");
+        } catch (UnknownHostException ignored) {
+        }
+    }
 
-  static String[] getPortForwarding(Session session){
-    java.util.Vector foo=new java.util.Vector();
-    synchronized(pool){
-      for(int i=0; i<pool.size(); i++){
-	PortWatcher p=(PortWatcher)(pool.elementAt(i));
-	if(p.session==session){
-	  foo.addElement(p.lport+":"+p.host+":"+p.rport);
-	}
-      }
-    }
-    String[] bar=new String[foo.size()];
-    for(int i=0; i<foo.size(); i++){
-      bar[i]=(String)(foo.elementAt(i));
-    }
-    return bar;
-  }
-  static PortWatcher getPort(Session session, String address, int lport) throws JSchException{
-    InetAddress addr;
-    try{
-      addr=InetAddress.getByName(address);
-    }
-    catch(UnknownHostException uhe){
-      throw new JSchException("PortForwardingL: invalid address "+address+" specified.", uhe);
-    }
-    synchronized(pool){
-      for(int i=0; i<pool.size(); i++){
-	PortWatcher p=(PortWatcher)(pool.elementAt(i));
-	if(p.session==session && p.lport==lport){
-	  if(/*p.boundaddress.isAnyLocalAddress() ||*/
-             (anyLocalAddress!=null &&  p.boundaddress.equals(anyLocalAddress)) ||
-	     p.boundaddress.equals(addr))
-	  return p;
-	}
-      }
-      return null;
-    }
-  }
-  private static String normalize(String address){
-    if(address!=null){
-      if(address.length()==0 || address.equals("*"))
-        address="0.0.0.0";
-      else if(address.equals("localhost"))
-        address="127.0.0.1";
-    }
-    return address;
-  }
-  static PortWatcher addPort(Session session, String address, int lport, String host, int rport, ServerSocketFactory ssf) throws JSchException{
-    address = normalize(address);
-    if(getPort(session, address, lport)!=null){
-      throw new JSchException("PortForwardingL: local port "+ address+":"+lport+" is already registered.");
-    }
-    PortWatcher pw=new PortWatcher(session, address, lport, host, rport, ssf);
-    pool.addElement(pw);
-    return pw;
-  }
-  static void delPort(Session session, String address, int lport) throws JSchException{
-    address = normalize(address);
-    PortWatcher pw=getPort(session, address, lport);
-    if(pw==null){
-      throw new JSchException("PortForwardingL: local port "+address+":"+lport+" is not registered.");
-    }
-    pw.delete();
-    pool.removeElement(pw);
-  }
-  static void delPort(Session session){
-    synchronized(pool){
-      PortWatcher[] foo=new PortWatcher[pool.size()];
-      int count=0;
-      for(int i=0; i<pool.size(); i++){
-	PortWatcher p=(PortWatcher)(pool.elementAt(i));
-	if(p.session==session) {
-	  p.delete();
-	  foo[count++]=p;
-	}
-      }
-      for(int i=0; i<count; i++){
-	PortWatcher p=foo[i];
-	pool.removeElement(p);
-      }
-    }
-  }
-  PortWatcher(Session session, 
-	      String address, int lport, 
-	      String host, int rport,
-              ServerSocketFactory factory) throws JSchException{
-    this.session=session;
-    this.lport=lport;
-    this.host=host;
-    this.rport=rport;
-    try{
-      boundaddress=InetAddress.getByName(address);
-      ss=(factory==null) ? 
-        new ServerSocket(lport, 0, boundaddress) :
-        factory.createServerSocket(lport, 0, boundaddress);
-    }
-    catch(Exception e){ 
-      //System.err.println(e);
-      String message="PortForwardingL: local port "+address+":"+lport+" cannot be bound.";
-      if(e instanceof Throwable)
-        throw new JSchException(message, (Throwable)e);
-      throw new JSchException(message);
-    }
-    if(lport==0){
-      int assigned=ss.getLocalPort();
-      if(assigned!=-1)
-        this.lport=assigned;
-    }
-  }
+    int lport;
+    private Session session;
+    private int rport;
+    private String host;
+    private InetAddress boundaddress;
+    private Runnable thread;
+    private ServerSocket ss;
+    private int connectTimeout = 0;
 
-  public void run(){
-    thread=this;
-    try{
-      while(thread!=null){
-        Socket socket=ss.accept();
-	socket.setTcpNoDelay(true);
-        InputStream in=socket.getInputStream();
-        OutputStream out=socket.getOutputStream();
-        ChannelDirectTCPIP channel=new ChannelDirectTCPIP();
-        channel.init();
-        channel.setInputStream(in);
-        channel.setOutputStream(out);
-	session.addChannel(channel);
-	((ChannelDirectTCPIP)channel).setHost(host);
-	((ChannelDirectTCPIP)channel).setPort(rport);
-	((ChannelDirectTCPIP)channel).setOrgIPAddress(socket.getInetAddress().getHostAddress());
-	((ChannelDirectTCPIP)channel).setOrgPort(socket.getPort());
-        channel.connect(connectTimeout);
-	if(channel.exitstatus!=-1){
-	}
-      }
+    PortWatcher(Session session,
+                String address, int lport,
+                String host, int rport,
+                ServerSocketFactory factory) throws JSchException {
+        this.session = session;
+        this.lport = lport;
+        this.host = host;
+        this.rport = rport;
+        try {
+            boundaddress = InetAddress.getByName(address);
+            ss = (factory == null) ?
+                    new ServerSocket(lport, 0, boundaddress) :
+                    factory.createServerSocket(lport, 0, boundaddress);
+        } catch (Exception e) {
+            //System.err.println(e);
+            String message = "PortForwardingL: local port " + address + ":" + lport + " cannot be bound.";
+            if (e instanceof Throwable) {
+                throw new JSchException(message, e);
+            }
+            throw new JSchException(message);
+        }
+        if (lport == 0) {
+            int assigned = ss.getLocalPort();
+            if (assigned != -1) {
+                this.lport = assigned;
+            }
+        }
     }
-    catch(Exception e){
-      //System.err.println("! "+e);
-    }
-    delete();
-  }
 
-  void delete(){
-    thread=null;
-    try{ 
-      if(ss!=null)ss.close();
-      ss=null;
+    static String[] getPortForwarding(Session session) {
+        Vector<String> foo = new Vector<>();
+        synchronized (pool) {
+            for (int i = 0; i < pool.size(); i++) {
+                PortWatcher p = (pool.elementAt(i));
+                if (p.session == session) {
+                    foo.addElement(p.lport + ":" + p.host + ":" + p.rport);
+                }
+            }
+        }
+        String[] bar = new String[foo.size()];
+        for (int i = 0; i < foo.size(); i++) {
+            bar[i] = (foo.elementAt(i));
+        }
+        return bar;
     }
-    catch(Exception e){
-    }
-  }
 
-  void setConnectTimeout(int connectTimeout){
-    this.connectTimeout=connectTimeout;
-  }
+    static PortWatcher getPort(Session session, String address, int lport) throws JSchException {
+        InetAddress addr;
+        try {
+            addr = InetAddress.getByName(address);
+        } catch (UnknownHostException uhe) {
+            throw new JSchException("PortForwardingL: invalid address " + address + " specified.", uhe);
+        }
+        synchronized (pool) {
+            for (int i = 0; i < pool.size(); i++) {
+                PortWatcher p = (pool.elementAt(i));
+                if (p.session == session && p.lport == lport) {
+                    if (/*p.boundaddress.isAnyLocalAddress() ||*/
+                            (anyLocalAddress != null && p.boundaddress.equals(anyLocalAddress)) ||
+                                    p.boundaddress.equals(addr)) {
+                        return p;
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
+    private static String normalize(String address) {
+        if (address != null) {
+            if (address.length() == 0 || address.equals("*")) {
+                address = "0.0.0.0";
+            } else if (address.equals("localhost")) {
+                address = "127.0.0.1";
+            }
+        }
+        return address;
+    }
+
+    static PortWatcher addPort(Session session, String address, int lport, String host, int rport, ServerSocketFactory ssf) throws JSchException {
+        address = normalize(address);
+        if (getPort(session, address, lport) != null) {
+            throw new JSchException("PortForwardingL: local port " + address + ":" + lport + " is already registered.");
+        }
+        PortWatcher pw = new PortWatcher(session, address, lport, host, rport, ssf);
+        pool.addElement(pw);
+        return pw;
+    }
+
+    static void delPort(Session session, String address, int lport) throws JSchException {
+        address = normalize(address);
+        PortWatcher pw = getPort(session, address, lport);
+        if (pw == null) {
+            throw new JSchException("PortForwardingL: local port " + address + ":" + lport + " is not registered.");
+        }
+        pw.delete();
+        pool.removeElement(pw);
+    }
+
+    static void delPort(Session session) {
+        synchronized (pool) {
+            PortWatcher[] foo = new PortWatcher[pool.size()];
+            int count = 0;
+            for (int i = 0; i < pool.size(); i++) {
+                PortWatcher p = (pool.elementAt(i));
+                if (p.session == session) {
+                    p.delete();
+                    foo[count++] = p;
+                }
+            }
+            for (int i = 0; i < count; i++) {
+                PortWatcher p = foo[i];
+                pool.removeElement(p);
+            }
+        }
+    }
+
+    public void run() {
+        thread = this;
+        try {
+            while (thread != null) {
+                Socket socket = ss.accept();
+                socket.setTcpNoDelay(true);
+                InputStream in = socket.getInputStream();
+                OutputStream out = socket.getOutputStream();
+                ChannelDirectTCPIP channel = new ChannelDirectTCPIP();
+                channel.init();
+                channel.setInputStream(in);
+                channel.setOutputStream(out);
+                session.addChannel(channel);
+                channel.setHost(host);
+                channel.setPort(rport);
+                channel.setOrgIPAddress(socket.getInetAddress().getHostAddress());
+                channel.setOrgPort(socket.getPort());
+                channel.connect(connectTimeout);
+            }
+        } catch (Exception e) {
+            //System.err.println("! "+e);
+        }
+        delete();
+    }
+
+    void delete() {
+        thread = null;
+        try {
+            if (ss != null) {
+                ss.close();
+            }
+            ss = null;
+        } catch (Exception ignored) {
+        }
+    }
+
+    void setConnectTimeout(int connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
 }
