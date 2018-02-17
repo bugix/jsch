@@ -29,25 +29,34 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jce;
 
-import com.jcraft.jsch.Cipher;
+import com.jcraft.jsch.Ciphering;
 
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.ShortBufferException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
-public class AES192CTR implements Cipher {
+public class AES192CTR implements Ciphering {
     private static final int ivsize = 16;
     private static final int bsize = 24;
-    private javax.crypto.Cipher cipher;
+    private Cipher cipher;
 
+    @Override
     public int getIVSize() {
         return ivsize;
     }
 
+    @Override
     public int getBlockSize() {
         return bsize;
     }
 
-    public void init(int mode, byte[] key, byte[] iv) throws Exception {
+    @Override
+    public void init(int mode, byte[] key, byte[] iv) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
         String pad = "NoPadding";
         byte[] tmp;
         if (iv.length > ivsize) {
@@ -60,25 +69,23 @@ public class AES192CTR implements Cipher {
             System.arraycopy(key, 0, tmp, 0, tmp.length);
             key = tmp;
         }
-        try {
-            SecretKeySpec keyspec = new SecretKeySpec(key, "AES");
-            cipher = javax.crypto.Cipher.getInstance("AES/CTR/" + pad);
-            synchronized (javax.crypto.Cipher.class) {
-                cipher.init((mode == ENCRYPT_MODE ?
-                                javax.crypto.Cipher.ENCRYPT_MODE :
-                                javax.crypto.Cipher.DECRYPT_MODE),
-                        keyspec, new IvParameterSpec(iv));
-            }
-        } catch (Exception e) {
-            cipher = null;
-            throw e;
+
+        SecretKeySpec keyspec = new SecretKeySpec(key, "AES");
+        cipher = Cipher.getInstance("AES/CTR/" + pad);
+        synchronized (Cipher.class) {
+            cipher.init((mode == ENCRYPT_MODE ?
+                            Cipher.ENCRYPT_MODE :
+                            Cipher.DECRYPT_MODE),
+                    keyspec, new IvParameterSpec(iv));
         }
     }
 
-    public void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws Exception {
+    @Override
+    public void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws ShortBufferException {
         cipher.update(foo, s1, len, bar, s2);
     }
 
+    @Override
     public boolean isCBC() {
         return false;
     }

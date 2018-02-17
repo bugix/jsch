@@ -29,7 +29,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jce;
 
-public class ECDH521 extends ECDHN implements com.jcraft.jsch.ECDH {
+import com.jcraft.jsch.ECDH;
+
+public class ECDH521 extends ECDHN implements ECDH {
     public void init() throws Exception {
         super.init(521);
     }

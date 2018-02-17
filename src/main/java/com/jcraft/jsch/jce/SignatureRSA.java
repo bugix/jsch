@@ -29,25 +29,33 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jce;
 
+import com.jcraft.jsch.SigningRSA;
+
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 
-public class SignatureRSA implements com.jcraft.jsch.SignatureRSA {
+public class SignatureRSA implements SigningRSA {
 
     private Signature signature;
     private KeyFactory keyFactory;
 
-    public void init() throws Exception {
+    @Override
+    public void init() throws NoSuchAlgorithmException {
         signature = java.security.Signature.getInstance("SHA1withRSA");
         keyFactory = KeyFactory.getInstance("RSA");
     }
 
-    public void setPubKey(byte[] e, byte[] n) throws Exception {
+    @Override
+    public void setPubKey(byte[] e, byte[] n) throws InvalidKeySpecException, InvalidKeyException {
         RSAPublicKeySpec rsaPubKeySpec =
                 new RSAPublicKeySpec(new BigInteger(n),
                         new BigInteger(e));
@@ -55,23 +63,25 @@ public class SignatureRSA implements com.jcraft.jsch.SignatureRSA {
         signature.initVerify(pubKey);
     }
 
-    public void setPrvKey(byte[] d, byte[] n) throws Exception {
-        RSAPrivateKeySpec rsaPrivKeySpec =
-                new RSAPrivateKeySpec(new BigInteger(n),
-                        new BigInteger(d));
+    @Override
+    public void setPrvKey(byte[] d, byte[] n) throws InvalidKeySpecException, InvalidKeyException {
+        RSAPrivateKeySpec rsaPrivKeySpec = new RSAPrivateKeySpec(new BigInteger(n), new BigInteger(d));
         PrivateKey prvKey = keyFactory.generatePrivate(rsaPrivKeySpec);
         signature.initSign(prvKey);
     }
 
-    public byte[] sign() throws Exception {
+    @Override
+    public byte[] sign() throws SignatureException {
         return signature.sign();
     }
 
-    public void update(byte[] foo) throws Exception {
+    @Override
+    public void update(byte[] foo) throws SignatureException {
         signature.update(foo);
     }
 
-    public boolean verify(byte[] sig) throws Exception {
+    @Override
+    public boolean verify(byte[] sig) throws SignatureException {
         int i = 0;
         int j = 0;
         byte[] tmp;
@@ -86,7 +96,7 @@ public class SignatureRSA implements com.jcraft.jsch.SignatureRSA {
             System.arraycopy(sig, i, tmp, 0, j);
             sig = tmp;
         }
-//System.err.println("j="+j+" "+Integer.toHexString(sig[0]&0xff));
+
         return signature.verify(sig);
     }
 }

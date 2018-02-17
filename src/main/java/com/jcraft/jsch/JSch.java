@@ -53,10 +53,8 @@ public class JSch {
     static {
         config.put("kex", "ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group1-sha1");
         config.put("server_host_key", "ssh-rsa,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521");
-        config.put("cipher.s2c",
-                "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
-        config.put("cipher.c2s",
-                "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+        config.put("cipher.s2c", "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
+        config.put("cipher.c2s", "aes128-ctr,aes128-cbc,3des-ctr,3des-cbc,blowfish-cbc,aes192-ctr,aes192-cbc,aes256-ctr,aes256-cbc");
 
         config.put("mac.s2c", "hmac-md5,hmac-sha1,hmac-sha2-256,hmac-sha1-96,hmac-md5-96");
         config.put("mac.c2s", "hmac-md5,hmac-sha1,hmac-sha2-256,hmac-sha1-96,hmac-md5-96");
@@ -68,14 +66,10 @@ public class JSch {
 
         config.put("compression_level", "6");
 
-        config.put("diffie-hellman-group-exchange-sha1",
-                "com.jcraft.jsch.DHGEX");
-        config.put("diffie-hellman-group1-sha1",
-                "com.jcraft.jsch.DHG1");
-        config.put("diffie-hellman-group14-sha1",
-                "com.jcraft.jsch.DHG14");    // available since JDK8.
-        config.put("diffie-hellman-group-exchange-sha256",
-                "com.jcraft.jsch.DHGEX256"); // available since JDK1.4.2.
+        config.put("diffie-hellman-group-exchange-sha1", "com.jcraft.jsch.DHGEX");
+        config.put("diffie-hellman-group1-sha1", "com.jcraft.jsch.DHG1");
+        config.put("diffie-hellman-group14-sha1", "com.jcraft.jsch.DHG14");    // available since JDK8.
+        config.put("diffie-hellman-group-exchange-sha256", "com.jcraft.jsch.DHGEX256"); // available since JDK1.4.2.
         // On JDK8, 2048bits will be used.
         config.put("ecdsa-sha2-nistp256", "com.jcraft.jsch.jce.SignatureECDSA");
         config.put("ecdsa-sha2-nistp384", "com.jcraft.jsch.jce.SignatureECDSA");
@@ -132,8 +126,8 @@ public class JSch {
         config.put("userauth.gssapi-with-mic", "com.jcraft.jsch.UserAuthGSSAPIWithMIC");
         config.put("gssapi-with-mic.krb5", "com.jcraft.jsch.jgss.GSSContextKrb5");
 
-        config.put("zlib", "com.jcraft.jsch.jcraft.Compression");
-        config.put("zlib@openssh.com", "com.jcraft.jsch.jcraft.Compression");
+        config.put("zlib", "com.jcraft.jsch.jcraft.Compressing");
+        config.put("zlib@openssh.com", "com.jcraft.jsch.jcraft.Compressing");
 
         config.put("pbkdf", "com.jcraft.jsch.jce.PBKDF");
 
@@ -150,9 +144,8 @@ public class JSch {
         config.put("ClearAllForwardings", "no");
     }
 
-    private final Vector<Session> sessionPool = new java.util.Vector<>();
-    private final IdentityRepository defaultIdentityRepository =
-            new LocalIdentityRepository(this);
+    private final Vector<Session> sessionPool = new Vector<>();
+    private final IdentityRepository defaultIdentityRepository = new LocalIdentityRepository(this);
     private IdentityRepository identityRepository = defaultIdentityRepository;
     private ConfigRepository configRepository = null;
     private HostKeyRepository known_hosts = null;
@@ -207,9 +200,9 @@ public class JSch {
      * @see com.jcraft.jsch.Logger
      */
     public static void setLogger(Logger logger) {
-      if (logger == null) {
-        logger = DEVNULL;
-      }
+        if (logger == null) {
+            logger = DEVNULL;
+        }
         JSch.logger = logger;
     }
 
@@ -273,8 +266,7 @@ public class JSch {
      * @see #getSession(String username, String host, int port)
      * @see com.jcraft.jsch.Session
      */
-    public Session getSession(String username, String host)
-            throws JSchException {
+    public Session getSession(String username, String host) throws JSchException {
         return getSession(username, host, 22);
     }
 
@@ -320,9 +312,10 @@ public class JSch {
      * @see com.jcraft.jsch.KnownHosts
      */
     public void setKnownHosts(String filename) throws JSchException {
-      if (known_hosts == null) {
-        known_hosts = new KnownHosts();
-      }
+        if (known_hosts == null) {
+            known_hosts = new KnownHosts();
+        }
+
         if (known_hosts instanceof KnownHosts) {
             synchronized (known_hosts) {
                 ((KnownHosts) known_hosts).setKnownHosts(filename);
@@ -339,9 +332,9 @@ public class JSch {
      * @see com.jcraft.jsch.KnownHosts
      */
     public void setKnownHosts(InputStream stream) throws JSchException {
-      if (known_hosts == null) {
-        known_hosts = new KnownHosts();
-      }
+        if (known_hosts == null) {
+            known_hosts = new KnownHosts();
+        }
         if (known_hosts instanceof KnownHosts) {
             synchronized (known_hosts) {
                 ((KnownHosts) known_hosts).setKnownHosts(stream);
@@ -358,9 +351,9 @@ public class JSch {
      * @see com.jcraft.jsch.KnownHosts
      */
     public HostKeyRepository getHostKeyRepository() {
-      if (known_hosts == null) {
-        known_hosts = new KnownHosts();
-      }
+        if (known_hosts == null) {
+            known_hosts = new KnownHosts();
+        }
         return known_hosts;
     }
 
@@ -404,9 +397,9 @@ public class JSch {
             _passphrase = Util.str2byte(passphrase);
         }
         addIdentity(prvkey, _passphrase);
-      if (_passphrase != null) {
-        Util.bzero(_passphrase);
-      }
+        if (_passphrase != null) {
+            Util.bzero(_passphrase);
+        }
     }
 
     /**
@@ -501,14 +494,14 @@ public class JSch {
         Vector identities = identityRepository.getIdentities();
         for (int i = 0; i < identities.size(); i++) {
             Identity identity = (Identity) (identities.elementAt(i));
-          if (!identity.getName().equals(name)) {
-            continue;
-          }
-          if (identityRepository instanceof LocalIdentityRepository) {
-            ((LocalIdentityRepository) identityRepository).remove(identity);
-          } else {
-            identityRepository.remove(identity.getPublicKeyBlob());
-          }
+            if (!identity.getName().equals(name)) {
+                continue;
+            }
+            if (identityRepository instanceof LocalIdentityRepository) {
+                ((LocalIdentityRepository) identityRepository).remove(identity);
+            } else {
+                identityRepository.remove(identity.getPublicKeyBlob());
+            }
         }
     }
 

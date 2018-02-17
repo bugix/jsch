@@ -31,15 +31,16 @@ package com.jcraft.jsch;
 
 public class Packet {
 
-    private static Random random = null;
+    private static Randomizing randomizing = null;
     final Buffer buffer;
     private final byte[] ba4 = new byte[4];
+
     public Packet(Buffer buffer) {
         this.buffer = buffer;
     }
 
-    static void setRandom(Random foo) {
-        random = foo;
+    static void setRandomizing(Randomizing foo) {
+        randomizing = foo;
     }
 
     public void reset() {
@@ -59,8 +60,8 @@ public class Packet {
         ba4[3] = (byte) (len);
         System.arraycopy(ba4, 0, buffer.buffer, 0, 4);
         buffer.buffer[4] = (byte) pad;
-        synchronized (random) {
-            random.fill(buffer.buffer, buffer.index, pad);
+        synchronized (randomizing) {
+            randomizing.fill(buffer.buffer, buffer.index, pad);
         }
         buffer.skip(pad);
     }
@@ -75,19 +76,11 @@ public class Packet {
         s += mac;
         s += 32; // margin for deflater; deflater may inflate data
 
-        /**/
         if (buffer.buffer.length < s + buffer.index - 5 - 9 - len) {
             byte[] foo = new byte[s + buffer.index - 5 - 9 - len];
             System.arraycopy(buffer.buffer, 0, foo, 0, buffer.buffer.length);
             buffer.buffer = foo;
         }
-        /**/
-
-//if(buffer.buffer.length<len+5+9)
-//  System.err.println("buffer.buffer.length="+buffer.buffer.length+" len+5+9="+(len+5+9));
-
-//if(buffer.buffer.length<s)
-//  System.err.println("buffer.buffer.length="+buffer.buffer.length+" s="+(s));
 
         System.arraycopy(buffer.buffer,
                 len + 5 + 9,

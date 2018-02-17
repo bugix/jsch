@@ -30,7 +30,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jcraft.jsch;
 
 class RequestExec extends Request {
-    private byte[] command = new byte[0];
+    private final byte[] command;
 
     RequestExec(byte[] command) {
         this.command = command;

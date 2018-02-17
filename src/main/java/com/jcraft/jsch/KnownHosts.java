@@ -66,13 +66,12 @@ public class KnownHosts implements HostKeyRepository {
         StringBuilder sb = new StringBuilder();
         byte i;
         int j;
-        boolean error = false;
         try {
             String host;
-            String key = null;
+            String key;
             int type;
             byte[] buf = new byte[1024];
-            int bufl = 0;
+            int bufl;
             loop:
             while (true) {
                 bufl = 0;
@@ -255,17 +254,11 @@ public class KnownHosts implements HostKeyRepository {
                     comment = sb.toString();
                 }
 
-                //System.err.println(host);
-                //System.err.println("|"+key+"|");
-
-                HostKey hk = null;
+                HostKey hk;
                 hk = new HashedHostKey(marker, host, type,
                         Util.fromBase64(Util.str2byte(key), 0,
                                 key.length()), comment);
                 pool.addElement(hk);
-            }
-            if (error) {
-                throw new JSchException("KnownHosts: invalid format");
             }
         } catch (Exception e) {
             if (e instanceof JSchException) {
@@ -300,7 +293,7 @@ public class KnownHosts implements HostKeyRepository {
             return result;
         }
 
-        HostKey hk = null;
+        HostKey hk;
         try {
             hk = new HostKey(host, HostKey.GUESS, key);
         } catch (JSchException e) {  // unsupported key
@@ -463,7 +456,6 @@ public class KnownHosts implements HostKeyRepository {
             synchronized (pool) {
                 for (int i = 0; i < pool.size(); i++) {
                     hk = (pool.elementAt(i));
-                    //hk.dump(out);
                     String marker = hk.getMarker();
                     String host = hk.getHost();
                     String type = hk.getType();
@@ -598,10 +590,10 @@ public class KnownHosts implements HostKeyRepository {
             }
             MAC macsha1 = getHMACSHA1();
             if (salt == null) {
-                Random random = Session.random;
-                synchronized (random) {
+                Randomizing randomizing = Session.randomizing;
+                synchronized (randomizing) {
                     salt = new byte[macsha1.getBlockSize()];
-                    random.fill(salt, 0, salt.length);
+                    randomizing.fill(salt, 0, salt.length);
                 }
             }
             try {

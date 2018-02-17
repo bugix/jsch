@@ -75,14 +75,13 @@ public class ProxySOCKS4 implements Proxy {
 
     public void setUserPasswd(String user, String passwd) {
         this.user = user;
-        String passwd1 = passwd;
     }
 
+    @Override
     public void connect(SocketFactory socket_factory, String host, int port, int timeout) throws JSchException {
         try {
             if (socket_factory == null) {
                 socket = Util.createSocket(proxy_host, proxy_port, timeout);
-                //socket=new Socket(proxy_host, proxy_port);
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
             } else {
@@ -200,18 +199,22 @@ public class ProxySOCKS4 implements Proxy {
         }
     }
 
+    @Override
     public InputStream getInputStream() {
         return in;
     }
 
+    @Override
     public OutputStream getOutputStream() {
         return out;
     }
 
+    @Override
     public Socket getSocket() {
         return socket;
     }
 
+    @Override
     public void close() {
         try {
             if (in != null) {

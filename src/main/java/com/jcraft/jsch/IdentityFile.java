@@ -33,21 +33,19 @@ class IdentityFile implements Identity {
     private final String identity;
     private KeyPair kpair;
 
-    private IdentityFile(JSch jsch, String name, KeyPair kpair) {
-        JSch jsch1 = jsch;
+    private IdentityFile(String name, KeyPair kpair) {
         this.identity = name;
         this.kpair = kpair;
     }
 
     static IdentityFile newInstance(String prvfile, String pubfile, JSch jsch) throws JSchException {
-        KeyPair kpair = KeyPair.load(jsch, prvfile, pubfile);
-        return new IdentityFile(jsch, prvfile, kpair);
+        KeyPair keyPair = KeyPair.load(jsch, prvfile, pubfile);
+        return new IdentityFile(prvfile, keyPair);
     }
 
     static IdentityFile newInstance(String name, byte[] prvkey, byte[] pubkey, JSch jsch) throws JSchException {
-
-        KeyPair kpair = KeyPair.load(jsch, prvkey, pubkey);
-        return new IdentityFile(jsch, name, kpair);
+        KeyPair keyPair = KeyPair.load(jsch, prvkey, pubkey);
+        return new IdentityFile(name, keyPair);
     }
 
     /**

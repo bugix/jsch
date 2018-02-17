@@ -212,7 +212,7 @@ public class KeyPairPKCS8 extends KeyPair {
         return kpair.getSignature(data);
     }
 
-    public Signature getVerifier() {
+    public Signing getVerifier() {
         return kpair.getVerifier();
     }
 
@@ -295,8 +295,8 @@ or
                 return false;
             }
 
-            Cipher cipher = getCipher(encryptfuncid);
-            if (cipher == null) {
+            Ciphering ciphering = getCipher(encryptfuncid);
+            if (ciphering == null) {
                 return false;
             }
 
@@ -304,7 +304,7 @@ or
             try {
                 Class<PBKDF> c = (Class<PBKDF>) Class.forName(JSch.getConfig("pbkdf"));
                 PBKDF tmp = (c.newInstance());
-                key = tmp.getKey(_passphrase, salt, iterations, cipher.getBlockSize());
+                key = tmp.getKey(_passphrase, salt, iterations, ciphering.getBlockSize());
             } catch (Exception ignored) {
             }
 
@@ -312,25 +312,23 @@ or
                 return false;
             }
 
-            cipher.init(Cipher.DECRYPT_MODE, key, iv);
+            ciphering.init(Ciphering.DECRYPT_MODE, key, iv);
             Util.bzero(key);
             byte[] plain = new byte[_data.length];
-            cipher.update(_data, 0, _data.length, plain, 0);
+            ciphering.update(_data, 0, _data.length, plain, 0);
             if (parse(plain)) {
                 encrypted = false;
                 return true;
             }
         } catch (ASN1Exception e) {
-            // System.err.println(e);
         } catch (Exception e) {
-            // System.err.println(e);
         }
 
         return false;
     }
 
-    Cipher getCipher(byte[] id) {
-        Cipher cipher = null;
+    Ciphering getCipher(byte[] id) {
+        Ciphering ciphering = null;
         String name = null;
         try {
             if (Util.array_equals(id, aes128cbc)) {
@@ -340,8 +338,8 @@ or
             } else if (Util.array_equals(id, aes256cbc)) {
                 name = "aes256-cbc";
             }
-            Class<Cipher> c = (Class<Cipher>) Class.forName(JSch.getConfig(name));
-            cipher = c.newInstance();
+            Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig(name));
+            ciphering = c.newInstance();
         } catch (Exception e) {
             if (JSch.getLogger().isEnabled(Logger.FATAL)) {
                 String message;
@@ -353,6 +351,6 @@ or
                 JSch.getLogger().log(Logger.FATAL, "PKCS8: " + message);
             }
         }
-        return cipher;
+        return ciphering;
     }
 }

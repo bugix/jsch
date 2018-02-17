@@ -34,6 +34,8 @@ import com.jcraft.jsch.MAC;
 import javax.crypto.Mac;
 import javax.crypto.ShortBufferException;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 abstract class HMAC implements MAC {
     private final byte[] tmp = new byte[4];
@@ -42,11 +44,13 @@ abstract class HMAC implements MAC {
     protected String algorithm;
     private Mac mac;
 
+    @Override
     public int getBlockSize() {
         return bsize;
     }
 
-    public void init(byte[] key) throws Exception {
+    @Override
+    public void init(byte[] key) throws NoSuchAlgorithmException, InvalidKeyException {
         if (key.length > bsize) {
             byte[] tmp = new byte[bsize];
             System.arraycopy(key, 0, tmp, 0, bsize);
@@ -57,6 +61,7 @@ abstract class HMAC implements MAC {
         mac.init(skey);
     }
 
+    @Override
     public void update(int i) {
         tmp[0] = (byte) (i >>> 24);
         tmp[1] = (byte) (i >>> 16);
@@ -65,10 +70,12 @@ abstract class HMAC implements MAC {
         update(tmp, 0, 4);
     }
 
+    @Override
     public void update(byte foo[], int s, int l) {
         mac.update(foo, s, l);
     }
 
+    @Override
     public void doFinal(byte[] buf, int offset) {
         try {
             mac.doFinal(buf, offset);
@@ -77,6 +84,7 @@ abstract class HMAC implements MAC {
         }
     }
 
+    @Override
     public String getName() {
         return name;
     }

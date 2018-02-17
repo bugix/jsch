@@ -136,7 +136,6 @@ public class DHGEX extends KeyExchange {
 
                 state = SSH_MSG_KEX_DH_GEX_REPLY;
                 return true;
-            //break;
 
             case SSH_MSG_KEX_DH_GEX_REPLY:
                 // The server responds with:
@@ -201,8 +200,6 @@ public class DHGEX extends KeyExchange {
                 sha.update(foo, 0, foo.length);
 
                 H = sha.digest();
-
-                // System.err.print("H -> "); dump(H, 0, H.length);
 
                 i = 0;
                 j = 0;

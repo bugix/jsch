@@ -116,7 +116,7 @@ public class UserAuthGSSAPIWithMIC extends UserAuth {
             return false;
         }
 
-        GSSContext context = null;
+        GSSContext context;
         try {
             Class c = Class.forName(session.getConfig(method));
             context = (GSSContext) (c.newInstance());
@@ -161,13 +161,11 @@ public class UserAuthGSSAPIWithMIC extends UserAuth {
 
                     buf = session.read(buf);
                     command = buf.getCommand() & 0xff;
-                    //return false;
                 } else if (command == SSH_MSG_USERAUTH_GSSAPI_ERRTOK) {
                     // string error token
 
                     buf = session.read(buf);
                     command = buf.getCommand() & 0xff;
-                    //return false;
                 }
 
                 if (command == SSH_MSG_USERAUTH_FAILURE) {
@@ -217,8 +215,6 @@ public class UserAuthGSSAPIWithMIC extends UserAuth {
             buf.getByte();
             byte[] foo = buf.getString();
             int partial_success = buf.getByte();
-            //System.err.println(new String(foo)+
-            //		 " partial_success:"+(partial_success!=0));
             if (partial_success != 0) {
                 throw new JSchPartialAuthException(Util.byte2str(foo));
             }

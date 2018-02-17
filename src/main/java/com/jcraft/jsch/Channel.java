@@ -66,6 +66,7 @@ public abstract class Channel implements Runnable {
     private volatile boolean eof_local = false;
     private volatile int exitstatus = -1;
     private Session session;
+
     Channel() {
         synchronized (pool) {
             id = index++;

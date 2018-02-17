@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2012-2016 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2015-2016 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -29,12 +29,13 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-public interface Signature {
-    void init() throws Exception;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 
-    void update(byte[] H) throws Exception;
+public interface SigningECDSA extends Signing {
+    void setPubKey(byte[] r, byte[] s) throws InvalidParameterSpecException, InvalidKeySpecException, InvalidKeyException, NoSuchAlgorithmException;
 
-    boolean verify(byte[] sig) throws Exception;
-
-    byte[] sign() throws Exception;
+    void setPrvKey(byte[] s) throws NoSuchAlgorithmException, InvalidParameterSpecException, InvalidKeySpecException, InvalidKeyException;
 }

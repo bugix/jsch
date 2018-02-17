@@ -29,7 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-public interface Compression {
+public interface Compressing {
     int INFLATER = 0;
     int DEFLATER = 1;
 

@@ -29,25 +29,32 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jce;
 
+import com.jcraft.jsch.SigningDSA;
+
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.spec.DSAPrivateKeySpec;
 import java.security.spec.DSAPublicKeySpec;
+import java.security.spec.InvalidKeySpecException;
 
-public class SignatureDSA implements com.jcraft.jsch.SignatureDSA {
+public class SignatureDSA implements SigningDSA {
 
     private Signature signature;
     private KeyFactory keyFactory;
 
-    public void init() throws Exception {
-        signature = java.security.Signature.getInstance("SHA1withDSA");
+    public void init() throws NoSuchAlgorithmException {
+        signature = Signature.getInstance("SHA1withDSA");
         keyFactory = KeyFactory.getInstance("DSA");
     }
 
-    public void setPubKey(byte[] y, byte[] p, byte[] q, byte[] g) throws Exception {
+    @Override
+    public void setPubKey(byte[] y, byte[] p, byte[] q, byte[] g) throws InvalidKeySpecException, InvalidKeyException {
         DSAPublicKeySpec dsaPubKeySpec =
                 new DSAPublicKeySpec(new BigInteger(y),
                         new BigInteger(p),
@@ -57,7 +64,7 @@ public class SignatureDSA implements com.jcraft.jsch.SignatureDSA {
         signature.initVerify(pubKey);
     }
 
-    public void setPrvKey(byte[] x, byte[] p, byte[] q, byte[] g) throws Exception {
+    public void setPrvKey(byte[] x, byte[] p, byte[] q, byte[] g) throws InvalidKeySpecException, InvalidKeyException {
         DSAPrivateKeySpec dsaPrivKeySpec =
                 new DSAPrivateKeySpec(new BigInteger(x),
                         new BigInteger(p),
@@ -67,7 +74,8 @@ public class SignatureDSA implements com.jcraft.jsch.SignatureDSA {
         signature.initSign(prvKey);
     }
 
-    public byte[] sign() throws Exception {
+    @Override
+    public byte[] sign() throws SignatureException {
         byte[] sig = signature.sign();
         // sig is in ASN.1
         // SEQUENCE::={ r INTEGER, s INTEGER }
@@ -95,11 +103,13 @@ public class SignatureDSA implements com.jcraft.jsch.SignatureDSA {
         return result;
     }
 
-    public void update(byte[] foo) throws Exception {
+    @Override
+    public void update(byte[] foo) throws SignatureException {
         signature.update(foo);
     }
 
-    public boolean verify(byte[] sig) throws Exception {
+    @Override
+    public boolean verify(byte[] sig) throws SignatureException {
         int i = 0;
         int j = 0;
         byte[] tmp;
@@ -118,7 +128,6 @@ public class SignatureDSA implements com.jcraft.jsch.SignatureDSA {
         // ASN.1
         int frst = ((sig[0] & 0x80) != 0 ? 1 : 0);
         int scnd = ((sig[20] & 0x80) != 0 ? 1 : 0);
-        //System.err.println("frst: "+frst+", scnd: "+scnd);
 
         int length = sig.length + 6 + frst + scnd;
         tmp = new byte[length];

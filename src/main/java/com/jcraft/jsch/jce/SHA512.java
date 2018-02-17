@@ -29,27 +29,30 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jce;
 
-import java.security.MessageDigest;
+import com.jcraft.jsch.HASH;
 
-public class SHA512 implements com.jcraft.jsch.HASH {
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+public class SHA512 implements HASH {
     private MessageDigest md;
 
+    @Override
     public int getBlockSize() {
         return 64;
     }
 
-    public void init() {
-        try {
-            md = MessageDigest.getInstance("SHA-512");
-        } catch (Exception e) {
-            System.err.println(e);
-        }
+    @Override
+    public void init() throws NoSuchAlgorithmException {
+        md = MessageDigest.getInstance("SHA-512");
     }
 
+    @Override
     public void update(byte[] foo, int start, int len) {
         md.update(foo, start, len);
     }
 
+    @Override
     public byte[] digest() {
         return md.digest();
     }

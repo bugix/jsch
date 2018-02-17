@@ -65,12 +65,13 @@ public abstract class KeyPair {
     protected byte[] data = null;
     int vendor = VENDOR_OPENSSH;
     JSch jsch = null;
-    private Cipher cipher;
+    private Ciphering ciphering;
     private HASH hash;
-    private Random random;
+    private Randomizing randomizing;
     private byte[] passphrase;
     private byte[] iv = null;
     private byte[] publickeyblob = null;
+
     public KeyPair(JSch jsch) {
         this.jsch = jsch;
     }
@@ -108,7 +109,7 @@ public abstract class KeyPair {
 
     public static KeyPair load(JSch jsch, String prvfile, String pubfile) throws JSchException {
 
-        byte[] prvkey = null;
+        byte[] prvkey;
         byte[] pubkey = null;
 
         try {
@@ -148,7 +149,7 @@ public abstract class KeyPair {
         int type = ERROR;
         int vendor = VENDOR_OPENSSH;
         String publicKeyComment = "";
-        Cipher cipher = null;
+        Ciphering ciphering = null;
 
         // prvkey from "ssh-add" command on the remote.
         if (pubkey == null &&
@@ -245,10 +246,9 @@ public abstract class KeyPair {
                         buf[i + 4] == '2' && buf[i + 5] == '5' && buf[i + 6] == '6' && buf[i + 7] == '-') {
                     i += 8;
                     if (Session.checkCipher(JSch.getConfig("aes256-cbc"))) {
-                        Class<Cipher> c = (Class<Cipher>) Class.forName(JSch.getConfig("aes256-cbc"));
-                        cipher = (c.newInstance());
-                        // key=new byte[cipher.getBlockSize()];
-                        iv = new byte[cipher.getIVSize()];
+                        Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig("aes256-cbc"));
+                        ciphering = (c.newInstance());
+                        iv = new byte[ciphering.getIVSize()];
                     } else {
                         throw new JSchException("privatekey: aes256-cbc is not available " + prvkey);
                     }
@@ -258,10 +258,10 @@ public abstract class KeyPair {
                         buf[i + 4] == '1' && buf[i + 5] == '9' && buf[i + 6] == '2' && buf[i + 7] == '-') {
                     i += 8;
                     if (Session.checkCipher(JSch.getConfig("aes192-cbc"))) {
-                        Class<Cipher> c = (Class<Cipher>) Class.forName(JSch.getConfig("aes192-cbc"));
-                        cipher = (c.newInstance());
-                        // key=new byte[cipher.getBlockSize()];
-                        iv = new byte[cipher.getIVSize()];
+                        Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig("aes192-cbc"));
+                        ciphering = (c.newInstance());
+                        // key=new byte[ciphering.getBlockSize()];
+                        iv = new byte[ciphering.getIVSize()];
                     } else {
                         throw new JSchException("privatekey: aes192-cbc is not available " + prvkey);
                     }
@@ -271,10 +271,10 @@ public abstract class KeyPair {
                         buf[i + 4] == '1' && buf[i + 5] == '2' && buf[i + 6] == '8' && buf[i + 7] == '-') {
                     i += 8;
                     if (Session.checkCipher(JSch.getConfig("aes128-cbc"))) {
-                        Class<Cipher> c = (Class<Cipher>) Class.forName(JSch.getConfig("aes128-cbc"));
-                        cipher = (c.newInstance());
-                        // key=new byte[cipher.getBlockSize()];
-                        iv = new byte[cipher.getIVSize()];
+                        Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig("aes128-cbc"));
+                        ciphering = (c.newInstance());
+                        // key=new byte[ciphering.getBlockSize()];
+                        iv = new byte[ciphering.getIVSize()];
                     } else {
                         throw new JSchException("privatekey: aes128-cbc is not available " + prvkey);
                     }
@@ -306,7 +306,7 @@ public abstract class KeyPair {
                         if (buf[j] == 0x0a) {
                             break;
                         }
-                        //if(buf[j]==0x0d) break;
+
                         if (buf[j] == ':') {
                             inheader = true;
                             break;
@@ -384,15 +384,11 @@ public abstract class KeyPair {
                 _buf.getInt();  // 0x3f6ff9be
                 _buf.getInt();
                 byte[] _type = _buf.getString();
-                //System.err.println("type: "+new String(_type));
                 String _cipher = Util.byte2str(_buf.getString());
-                //System.err.println("cipher: "+_cipher);
                 if (_cipher.equals("3des-cbc")) {
                     _buf.getInt();
                     byte[] foo = new byte[data.length - _buf.getOffSet()];
                     _buf.getByte(foo);
-                    data = foo;
-                    encrypted = true;
                     throw new JSchException("unknown privatekey format: " + prvkey);
                 } else if (_cipher.equals("none")) {
                     _buf.getInt();
@@ -578,7 +574,7 @@ public abstract class KeyPair {
             kpair.publickeyblob = publickeyblob;
             kpair.vendor = vendor;
             kpair.publicKeyComment = publicKeyComment;
-            kpair.cipher = cipher;
+            kpair.ciphering = ciphering;
 
             if (encrypted) {
                 kpair.encrypted = true;
@@ -612,9 +608,9 @@ public abstract class KeyPair {
     }
 
     static KeyPair loadPPK(JSch jsch, byte[] buf) throws JSchException {
-        byte[] pubkey = null;
-        byte[] prvkey = null;
-        int lines = 0;
+        byte[] pubkey;
+        byte[] prvkey;
+        int lines;
 
         Buffer buffer = new Buffer(buf);
         java.util.Hashtable<String, String> v = new java.util.Hashtable<>();
@@ -651,7 +647,7 @@ public abstract class KeyPair {
         prvkey = Util.fromBase64(prvkey, 0, prvkey.length);
         pubkey = Util.fromBase64(pubkey, 0, pubkey.length);
 
-        KeyPair kpair = null;
+        KeyPair kpair;
 
         switch (typ) {
             case "ssh-rsa": {
@@ -694,24 +690,20 @@ public abstract class KeyPair {
                 return null;
         }
 
-        if (kpair == null) {
-            return null;
-        }
-
         kpair.encrypted = !v.get("Encryption").equals("none");
         kpair.vendor = VENDOR_PUTTY;
         kpair.publicKeyComment = v.get("Comment");
         if (kpair.encrypted) {
             if (Session.checkCipher(JSch.getConfig("aes256-cbc"))) {
                 try {
-                    Class<Cipher> c = (Class<Cipher>) Class.forName(JSch.getConfig("aes256-cbc"));
-                    kpair.cipher = (c.newInstance());
-                    kpair.iv = new byte[kpair.cipher.getIVSize()];
+                    Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig("aes256-cbc"));
+                    kpair.ciphering = (c.newInstance());
+                    kpair.iv = new byte[kpair.ciphering.getIVSize()];
                 } catch (Exception e) {
-                    throw new JSchException("The cipher 'aes256-cbc' is required, but it is not available.");
+                    throw new JSchException("The ciphering 'aes256-cbc' is required, but it is not available.");
                 }
             } else {
-                throw new JSchException("The cipher 'aes256-cbc' is required, but it is not available.");
+                throw new JSchException("The ciphering 'aes256-cbc' is required, but it is not available.");
             }
             kpair.data = prvkey;
         } else {
@@ -812,7 +804,7 @@ public abstract class KeyPair {
 
     public abstract byte[] getSignature(byte[] data);
 
-    public abstract Signature getVerifier();
+    public abstract Signing getVerifier();
 
     public abstract byte[] forSSHAgent() throws JSchException;
 
@@ -884,7 +876,6 @@ public abstract class KeyPair {
             }
             out.write(getEnd());
             out.write(cr);
-            //out.close();
         } catch (Exception ignored) {
         }
     }
@@ -899,9 +890,6 @@ public abstract class KeyPair {
      * @return blob of the public key
      */
     public byte[] getPublicKeyBlob() {
-        // TODO JSchException should be thrown
-        //if(publickeyblob == null)
-        //  throw new JSchException("public-key blob is not available");
         return publickeyblob;
     }
 
@@ -1027,23 +1015,22 @@ public abstract class KeyPair {
             return plain;
         }
 
-        if (cipher == null) {
-            cipher = genCipher();
+        if (ciphering == null) {
+            ciphering = genCipher();
         }
-        byte[] iv = _iv[0] = new byte[cipher.getIVSize()];
+        byte[] iv = _iv[0] = new byte[ciphering.getIVSize()];
 
-        if (random == null) {
-            random = genRandom();
+        if (randomizing == null) {
+            randomizing = genRandom();
         }
-        random.fill(iv, 0, iv.length);
+        randomizing.fill(iv, 0, iv.length);
 
         byte[] key = genKey(passphrase, iv);
         byte[] encoded = plain;
 
         // PKCS#5Padding
         {
-            //int bsize=cipher.getBlockSize();
-            int bsize = cipher.getIVSize();
+            int bsize = ciphering.getIVSize();
             byte[] foo = new byte[(encoded.length / bsize + 1) * bsize];
             System.arraycopy(encoded, 0, foo, 0, encoded.length);
             int padding = bsize - encoded.length % bsize;
@@ -1054,10 +1041,9 @@ public abstract class KeyPair {
         }
 
         try {
-            cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-            cipher.update(encoded, 0, encoded.length, encoded, 0);
+            ciphering.init(Ciphering.ENCRYPT_MODE, key, iv);
+            ciphering.update(encoded, 0, encoded.length, encoded, 0);
         } catch (Exception e) {
-            //System.err.println(e);
         }
         Util.bzero(key);
         return encoded;
@@ -1069,13 +1055,12 @@ public abstract class KeyPair {
 
         try {
             byte[] key = genKey(passphrase, iv);
-            cipher.init(Cipher.DECRYPT_MODE, key, iv);
+            ciphering.init(Ciphering.DECRYPT_MODE, key, iv);
             Util.bzero(key);
             byte[] plain = new byte[data.length];
-            cipher.update(data, 0, data.length, plain, 0);
+            ciphering.update(data, 0, data.length, plain, 0);
             return plain;
         } catch (Exception e) {
-            //System.err.println(e);
         }
         return null;
     }
@@ -1138,16 +1123,16 @@ public abstract class KeyPair {
         return j;
     }
 
-    private Random genRandom() {
-        if (random == null) {
+    private Randomizing genRandom() {
+        if (randomizing == null) {
             try {
-                Class<Random> c = (Class<Random>) Class.forName(JSch.getConfig("random"));
-                random = c.newInstance();
+                Class<Randomizing> c = (Class<Randomizing>) Class.forName(JSch.getConfig("random"));
+                randomizing = c.newInstance();
             } catch (Exception e) {
-                System.err.println("connect: random " + e);
+                System.err.println("connect: randomizing " + e);
             }
         }
-        return random;
+        return randomizing;
     }
 
     private HASH genHash() {
@@ -1160,13 +1145,13 @@ public abstract class KeyPair {
         return hash;
     }
 
-    private Cipher genCipher() {
+    private Ciphering genCipher() {
         try {
-            Class<Cipher> c = (Class<Cipher>) Class.forName(JSch.getConfig("3des-cbc"));
-            cipher = c.newInstance();
+            Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig("3des-cbc"));
+            ciphering = c.newInstance();
         } catch (Exception ignored) {
         }
-        return cipher;
+        return ciphering;
     }
 
     /*
@@ -1176,14 +1161,14 @@ public abstract class KeyPair {
       key <- (h(0),...,h(n))[0,..,key.length];
     */
     synchronized byte[] genKey(byte[] passphrase, byte[] iv) {
-        if (cipher == null) {
-            cipher = genCipher();
+        if (ciphering == null) {
+            ciphering = genCipher();
         }
         if (hash == null) {
             hash = genHash();
         }
 
-        byte[] key = new byte[cipher.getBlockSize()];
+        byte[] key = new byte[ciphering.getBlockSize()];
         int hsize = hash.getBlockSize();
         byte[] hn = new byte[key.length / hsize * hsize +
                 (key.length % hsize == 0 ? 0 : hsize)];
@@ -1298,7 +1283,7 @@ public abstract class KeyPair {
         this.publickeyblob = kpair.publickeyblob;
         this.vendor = kpair.vendor;
         this.publicKeyComment = kpair.publicKeyComment;
-        this.cipher = kpair.cipher;
+        this.ciphering = kpair.ciphering;
     }
 
     class ASN1Exception extends Exception {

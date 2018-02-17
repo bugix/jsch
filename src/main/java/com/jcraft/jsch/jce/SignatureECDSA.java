@@ -30,30 +30,38 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.jcraft.jsch.jce;
 
 import com.jcraft.jsch.Buffer;
+import com.jcraft.jsch.SigningECDSA;
 
 import java.math.BigInteger;
 import java.security.AlgorithmParameters;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.ECPrivateKeySpec;
 import java.security.spec.ECPublicKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 
-public class SignatureECDSA implements com.jcraft.jsch.SignatureECDSA {
+public class SignatureECDSA implements SigningECDSA {
 
     private Signature signature;
     private KeyFactory keyFactory;
 
-    public void init() throws Exception {
-        signature = java.security.Signature.getInstance("SHA256withECDSA");
+    @Override
+    public void init() throws NoSuchAlgorithmException {
+        signature = Signature.getInstance("SHA256withECDSA");
         keyFactory = KeyFactory.getInstance("EC");
     }
 
-    public void setPubKey(byte[] r, byte[] s) throws Exception {
+    @Override
+    public void setPubKey(byte[] r, byte[] s) throws InvalidParameterSpecException, InvalidKeySpecException, InvalidKeyException, NoSuchAlgorithmException {
 
         // r and s must be unsigned values.
         r = insert0(r);
@@ -68,15 +76,14 @@ public class SignatureECDSA implements com.jcraft.jsch.SignatureECDSA {
 
         AlgorithmParameters param = AlgorithmParameters.getInstance("EC");
         param.init(new ECGenParameterSpec(name));
-        ECParameterSpec ecparam =
-                param.getParameterSpec(ECParameterSpec.class);
+        ECParameterSpec ecparam = param.getParameterSpec(ECParameterSpec.class);
         ECPoint w = new ECPoint(new BigInteger(1, r), new BigInteger(1, s));
-        PublicKey pubKey =
-                keyFactory.generatePublic(new ECPublicKeySpec(w, ecparam));
+        PublicKey pubKey = keyFactory.generatePublic(new ECPublicKeySpec(w, ecparam));
         signature.initVerify(pubKey);
     }
 
-    public void setPrvKey(byte[] d) throws Exception {
+    @Override
+    public void setPrvKey(byte[] d) throws NoSuchAlgorithmException, InvalidParameterSpecException, InvalidKeySpecException, InvalidKeyException {
 
         // d must be unsigned value.
         d = insert0(d);
@@ -90,15 +97,14 @@ public class SignatureECDSA implements com.jcraft.jsch.SignatureECDSA {
 
         AlgorithmParameters param = AlgorithmParameters.getInstance("EC");
         param.init(new ECGenParameterSpec(name));
-        ECParameterSpec ecparam =
-                param.getParameterSpec(ECParameterSpec.class);
+        ECParameterSpec ecparam = param.getParameterSpec(ECParameterSpec.class);
         BigInteger _d = new BigInteger(1, d);
-        PrivateKey prvKey =
-                keyFactory.generatePrivate(new ECPrivateKeySpec(_d, ecparam));
+        PrivateKey prvKey = keyFactory.generatePrivate(new ECPrivateKeySpec(_d, ecparam));
         signature.initSign(prvKey);
     }
 
-    public byte[] sign() throws Exception {
+    @Override
+    public byte[] sign() throws SignatureException {
         byte[] sig = signature.sign();
 
         // It seems that the output from SunEC is in ASN.1,
@@ -132,11 +138,13 @@ public class SignatureECDSA implements com.jcraft.jsch.SignatureECDSA {
         return sig;
     }
 
-    public void update(byte[] foo) throws Exception {
+    @Override
+    public void update(byte[] foo) throws SignatureException {
         signature.update(foo);
     }
 
-    public boolean verify(byte[] sig) throws Exception {
+    @Override
+    public boolean verify(byte[] sig) throws SignatureException {
 
         // It seems that SunEC expects ASN.1 data,
         // so we have to convert it.

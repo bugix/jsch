@@ -29,12 +29,15 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
 public interface MAC {
     String getName();
 
     int getBlockSize();
 
-    void init(byte[] key) throws Exception;
+    void init(byte[] key) throws NoSuchAlgorithmException, InvalidKeyException;
 
     void update(byte[] foo, int start, int len);
 

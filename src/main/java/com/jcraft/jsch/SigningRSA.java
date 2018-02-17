@@ -29,8 +29,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-public interface SignatureDSA extends Signature {
-    void setPubKey(byte[] y, byte[] p, byte[] q, byte[] g) throws Exception;
+import java.security.InvalidKeyException;
+import java.security.spec.InvalidKeySpecException;
 
-    void setPrvKey(byte[] x, byte[] p, byte[] q, byte[] g) throws Exception;
+public interface SigningRSA extends Signing {
+    void setPubKey(byte[] e, byte[] n) throws InvalidKeySpecException, InvalidKeyException;
+
+    void setPrvKey(byte[] d, byte[] n) throws InvalidKeySpecException, InvalidKeyException;
 }

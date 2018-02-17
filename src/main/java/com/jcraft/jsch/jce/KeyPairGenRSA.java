@@ -31,6 +31,7 @@ package com.jcraft.jsch.jce;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -49,7 +50,7 @@ public class KeyPairGenRSA implements com.jcraft.jsch.KeyPairGenRSA {
     private byte[] p;  // prime p
     private byte[] q;  // prime q
 
-    public void init(int key_size) throws Exception {
+    public void init(int key_size) throws NoSuchAlgorithmException {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
         keyGen.initialize(key_size, new SecureRandom());
         KeyPair pair = keyGen.generateKeyPair();

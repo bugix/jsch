@@ -77,17 +77,6 @@ public class GSSContextKrb5 implements com.jcraft.jsch.GSSContext {
             GSSManager mgr = GSSManager.getInstance();
 
             GSSCredential crd = null;
-      /*
-      try{
-        GSSName _user=mgr.createName(user, principalName);
-        crd=mgr.createCredential(_user,
-                                 GSSCredential.DEFAULT_LIFETIME,
-                                 krb5,
-                                 GSSCredential.INITIATE_ONLY);
-      }
-      catch(GSSException crdex){
-      }
-      */
 
             String cname = host;
             try {

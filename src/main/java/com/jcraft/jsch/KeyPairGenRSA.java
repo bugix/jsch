@@ -29,8 +29,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import java.security.NoSuchAlgorithmException;
+
 public interface KeyPairGenRSA {
-    void init(int key_size) throws Exception;
+    void init(int key_size) throws NoSuchAlgorithmException;
 
     byte[] getD();
 

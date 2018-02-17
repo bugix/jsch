@@ -51,23 +51,20 @@ class UserAuthPassword extends UserAuth {
 
                 if (password == null) {
                     if (userinfo == null) {
-                        //throw new JSchException("USERAUTH fail");
                         return false;
                     }
                     if (!userinfo.promptPassword("Password for " + dest)) {
                         throw new JSchAuthCancelException("password");
-                        //break;
                     }
 
                     String _password = userinfo.getPassword();
                     if (_password == null) {
                         throw new JSchAuthCancelException("password");
-                        //break;
                     }
                     password = Util.str2byte(_password);
                 }
 
-                byte[] _username = null;
+                byte[] _username;
                 _username = Util.str2byte(username);
 
                 // send
@@ -152,7 +149,6 @@ class UserAuthPassword extends UserAuth {
                         buf.putString(password);
                         buf.putString(newpassword);
                         Util.bzero(newpassword);
-                        response = null;
                         session.write(packet);
                         continue;
                     }
@@ -162,16 +158,12 @@ class UserAuthPassword extends UserAuth {
                         buf.getByte();
                         byte[] foo = buf.getString();
                         int partial_success = buf.getByte();
-                        //System.err.println(new String(foo)+
-                        //		 " partial_success:"+(partial_success!=0));
                         if (partial_success != 0) {
                             throw new JSchPartialAuthException(Util.byte2str(foo));
                         }
                         session.auth_failures++;
                         break;
                     } else {
-                        //System.err.println("USERAUTH fail ("+buf.getCommand()+")");
-//	  throw new JSchException("USERAUTH fail ("+buf.getCommand()+")");
                         return false;
                     }
                 }
@@ -186,11 +178,7 @@ class UserAuthPassword extends UserAuth {
         } finally {
             if (password != null) {
                 Util.bzero(password);
-                password = null;
             }
         }
-
-        //throw new JSchException("USERAUTH fail");
-        //return false;
     }
 }

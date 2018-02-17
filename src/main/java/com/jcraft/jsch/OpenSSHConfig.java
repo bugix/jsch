@@ -55,7 +55,7 @@ import java.util.Vector;
  * <li>HostKeyAlgorithms</li>
  * <li>Ciphers</li>
  * <li>Macs</li>
- * <li>Compression</li>
+ * <li>Compressing</li>
  * <li>CompressionLevel</li>
  * <li>ForwardAgent</li>
  * <li>RequestTTY</li>
@@ -78,14 +78,15 @@ public class OpenSSHConfig implements ConfigRepository {
         keymap.put("cipher.s2c", "Ciphers");
         keymap.put("mac.c2s", "Macs");
         keymap.put("mac.s2c", "Macs");
-        keymap.put("compression.s2c", "Compression");
-        keymap.put("compression.c2s", "Compression");
+        keymap.put("compression.s2c", "Compressing");
+        keymap.put("compression.c2s", "Compressing");
         keymap.put("compression_level", "CompressionLevel");
         keymap.put("MaxAuthTries", "NumberOfPasswordPrompts");
     }
 
     private final Hashtable<String, Vector<String[]>> config = new Hashtable<>();
     private final Vector<String> hosts = new Vector<>();
+
     OpenSSHConfig(Reader r) throws IOException {
         _parse(r);
     }
@@ -119,7 +120,7 @@ public class OpenSSHConfig implements ConfigRepository {
 
         String host = "";
         Vector<String[]> kv = new Vector<>();
-        String l = null;
+        String l;
 
         while ((l = br.readLine()) != null) {
             l = l.trim();
@@ -155,11 +156,9 @@ public class OpenSSHConfig implements ConfigRepository {
 
     class MyConfig implements Config {
 
-        private final String host;
         private final Vector<Vector<String[]>> _configs = new Vector<>();
 
         MyConfig(String host) {
-            this.host = host;
 
             _configs.addElement(config.get(""));
 

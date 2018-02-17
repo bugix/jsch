@@ -1,6 +1,6 @@
 /* -*-mode:java; c-basic-offset:2; indent-tabs-mode:nil -*- */
 /*
-Copyright (c) 2015-2016 ymnk, JCraft,Inc. All rights reserved.
+Copyright (c) 2002-2016 ymnk, JCraft,Inc. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -29,8 +29,24 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-public interface SignatureECDSA extends Signature {
-    void setPubKey(byte[] r, byte[] s) throws Exception;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.ShortBufferException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
-    void setPrvKey(byte[] s) throws Exception;
+public interface Ciphering {
+    int ENCRYPT_MODE = 0;
+    int DECRYPT_MODE = 1;
+
+    int getIVSize();
+
+    int getBlockSize();
+
+    void init(int mode, byte[] key, byte[] iv) throws InvalidKeyException, ShortBufferException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException;
+
+    void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws ShortBufferException;
+
+    boolean isCBC();
 }

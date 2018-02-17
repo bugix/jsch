@@ -33,10 +33,14 @@ import javax.crypto.KeyAgreement;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.DHPublicKeySpec;
 import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 
 public class DH implements com.jcraft.jsch.DH {
     private BigInteger p;
@@ -50,12 +54,14 @@ public class DH implements com.jcraft.jsch.DH {
     private KeyPairGenerator myKpairGen;
     private KeyAgreement myKeyAgree;
 
-    public void init() throws Exception {
+    @Override
+    public void init() throws NoSuchAlgorithmException {
         myKpairGen = KeyPairGenerator.getInstance("DH");
         myKeyAgree = KeyAgreement.getInstance("DH");
     }
 
-    public byte[] getE() throws Exception {
+    @Override
+    public byte[] getE() throws InvalidAlgorithmParameterException, InvalidKeyException {
         if (e == null) {
             DHParameterSpec dhSkipParamSpec = new DHParameterSpec(p, g);
             myKpairGen.initialize(dhSkipParamSpec);
@@ -67,7 +73,8 @@ public class DH implements com.jcraft.jsch.DH {
         return e_array;
     }
 
-    public byte[] getK() throws Exception {
+    @Override
+    public byte[] getK() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException {
         if (K == null) {
             KeyFactory myKeyFac = KeyFactory.getInstance("DH");
             DHPublicKeySpec keySpec = new DHPublicKeySpec(f, p, g);

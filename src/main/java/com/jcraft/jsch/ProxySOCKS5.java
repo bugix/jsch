@@ -78,11 +78,11 @@ public class ProxySOCKS5 implements Proxy {
         this.passwd = passwd;
     }
 
+    @Override
     public void connect(SocketFactory socket_factory, String host, int port, int timeout) throws JSchException {
         try {
             if (socket_factory == null) {
                 socket = Util.createSocket(proxy_host, proxy_port, timeout);
-                //socket=new Socket(proxy_host, proxy_port);
                 in = socket.getInputStream();
                 out = socket.getOutputStream();
             } else {
@@ -137,7 +137,6 @@ public class ProxySOCKS5 implements Proxy {
                          | 1  |   1    |
                          +----+--------+
 */
-            //in.read(buf, 0, 2);
             fill(in, buf, 2);
 
             boolean check = false;
@@ -288,7 +287,6 @@ public class ProxySOCKS5 implements Proxy {
     o  BND.PORT       server bound port in network octet order
 */
 
-            //in.read(buf, 0, 4);
             fill(in, buf, 4);
 
             if (buf[1] != 0) {
@@ -301,17 +299,13 @@ public class ProxySOCKS5 implements Proxy {
 
             switch (buf[3] & 0xff) {
                 case 1:
-                    //in.read(buf, 0, 6);
                     fill(in, buf, 6);
                     break;
                 case 3:
-                    //in.read(buf, 0, 1);
                     fill(in, buf, 1);
-                    //in.read(buf, 0, buf[0]+2);
                     fill(in, buf, (buf[0] & 0xff) + 2);
                     break;
                 case 4:
-                    //in.read(buf, 0, 18);
                     fill(in, buf, 18);
                     break;
                 default:
@@ -326,25 +320,26 @@ public class ProxySOCKS5 implements Proxy {
             } catch (Exception ignored) {
             }
             String message = "ProxySOCKS5: " + e.toString();
-            if (e instanceof Throwable) {
-                throw new JSchException(message, e);
-            }
-            throw new JSchException(message);
+            throw new JSchException(message, e);
         }
     }
 
+    @Override
     public InputStream getInputStream() {
         return in;
     }
 
+    @Override
     public OutputStream getOutputStream() {
         return out;
     }
 
+    @Override
     public Socket getSocket() {
         return socket;
     }
 
+    @Override
     public void close() {
         try {
             if (in != null) {

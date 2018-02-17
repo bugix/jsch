@@ -48,6 +48,7 @@ public class KeyPairRSA extends KeyPair {
     public KeyPairRSA(JSch jsch) {
         this(jsch, null, null, null);
     }
+
     public KeyPairRSA(JSch jsch,
                       byte[] n_array,
                       byte[] pub_array,
@@ -93,11 +94,7 @@ public class KeyPairRSA extends KeyPair {
             eq_array = keypairgen.getEQ();
             c_array = keypairgen.getC();
         } catch (Exception e) {
-            //System.err.println("KeyPairRSA: "+e);
-          if (e instanceof Throwable) {
             throw new JSchException(e.toString(), e);
-          }
-            throw new JSchException(e.toString());
         }
     }
 
@@ -121,8 +118,7 @@ public class KeyPairRSA extends KeyPair {
                         1 + countLength(eq_array.length) + eq_array.length +    // INTEGER  eq
                         1 + countLength(c_array.length) + c_array.length;      // INTEGER  c
 
-        int total =
-                1 + countLength(content) + content;   // SEQUENCE
+        int total = 1 + countLength(content) + content;   // SEQUENCE
 
         byte[] plain = new byte[total];
         int index = 0;
@@ -135,7 +131,7 @@ public class KeyPairRSA extends KeyPair {
         index = writeINTEGER(plain, index, q_array);
         index = writeINTEGER(plain, index, ep_array);
         index = writeINTEGER(plain, index, eq_array);
-        index = writeINTEGER(plain, index, c_array);
+        writeINTEGER(plain, index, c_array);
         return plain;
     }
 
@@ -213,9 +209,9 @@ public class KeyPairRSA extends KeyPair {
                 }
             }
 
-          if (plain[index] != 0x02) {
-            return false;
-          }
+            if (plain[index] != 0x02) {
+                return false;
+            }
             index++; // INTEGER
             length = plain[index++] & 0xff;
             if ((length & 0x80) != 0) {
@@ -329,14 +325,12 @@ public class KeyPairRSA extends KeyPair {
             }
             c_array = new byte[length];
             System.arraycopy(plain, index, c_array, 0, length);
-            index += length;
 
             if (n_array != null) {
                 key_size = (new java.math.BigInteger(n_array)).bitLength();
             }
 
         } catch (Exception e) {
-            //System.err.println(e);
             return false;
         }
         return true;
@@ -344,13 +338,14 @@ public class KeyPairRSA extends KeyPair {
 
     public byte[] getPublicKeyBlob() {
         byte[] foo = super.getPublicKeyBlob();
-      if (foo != null) {
-        return foo;
-      }
 
-      if (pub_array == null) {
-        return null;
-      }
+        if (foo != null) {
+            return foo;
+        }
+
+        if (pub_array == null) {
+            return null;
+        }
         byte[][] tmp = new byte[3][];
         tmp[0] = sshrsa;
         tmp[1] = pub_array;
@@ -372,8 +367,8 @@ public class KeyPairRSA extends KeyPair {
 
     public byte[] getSignature(byte[] data) {
         try {
-            Class<SignatureRSA> c = (Class<SignatureRSA>) Class.forName(JSch.getConfig("signature.rsa"));
-            SignatureRSA rsa = c.newInstance();
+            Class<SigningRSA> c = (Class<SigningRSA>) Class.forName(JSch.getConfig("signature.rsa"));
+            SigningRSA rsa = c.newInstance();
             rsa.init();
             rsa.setPrvKey(prv_array, n_array);
 
@@ -388,10 +383,10 @@ public class KeyPairRSA extends KeyPair {
         return null;
     }
 
-    public Signature getVerifier() {
+    public Signing getVerifier() {
         try {
-            Class<SignatureRSA> c = (Class<SignatureRSA>) Class.forName(JSch.getConfig("signature.rsa"));
-            SignatureRSA rsa = c.newInstance();
+            Class<SigningRSA> c = (Class<SigningRSA>) Class.forName(JSch.getConfig("signature.rsa"));
+            SigningRSA rsa = c.newInstance();
             rsa.init();
 
             if (pub_array == null && n_array == null && getPublicKeyBlob() != null) {

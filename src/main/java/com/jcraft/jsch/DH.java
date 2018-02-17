@@ -29,18 +29,23 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 public interface DH {
-    void init() throws Exception;
+    void init() throws NoSuchAlgorithmException;
 
     void setP(byte[] p);
 
     void setG(byte[] g);
 
-    byte[] getE() throws Exception;
+    byte[] getE() throws InvalidAlgorithmParameterException, InvalidKeyException;
 
     void setF(byte[] f);
 
-    byte[] getK() throws Exception;
+    byte[] getK() throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException;
 
     // checkRange() will check if e and f are in [1,p-1]
     // as defined at https://tools.ietf.org/html/rfc4253#section-8

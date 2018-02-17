@@ -220,7 +220,7 @@ public class ChannelForwardedTCPIP extends Channel {
                 ForwardedTCPIPDaemon daemon = c.newInstance();
 
                 PipedOutputStream out = new PipedOutputStream();
-                io.setInputStream(new PassiveInputStream(out,32 * 1024), false);
+                io.setInputStream(new PassiveInputStream(out, 32 * 1024), false);
 
                 daemon.setChannel(this, getInputStream(), out);
                 daemon.setArg(_config.arg);

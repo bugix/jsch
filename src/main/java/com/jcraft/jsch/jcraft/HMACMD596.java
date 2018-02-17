@@ -35,15 +35,18 @@ public class HMACMD596 extends HMACMD5 {
     private static final int BSIZE = 12;
     private final byte[] _buf16 = new byte[16];
 
+    @Override
     public int getBlockSize() {
         return BSIZE;
     }
 
+    @Override
     public void doFinal(byte[] buf, int offset) {
         super.doFinal(_buf16, 0);
         System.arraycopy(_buf16, 0, buf, offset, BSIZE);
     }
 
+    @Override
     public String getName() {
         return name;
     }

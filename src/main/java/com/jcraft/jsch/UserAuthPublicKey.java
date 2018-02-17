@@ -100,8 +100,6 @@ class UserAuthPublicKey extends UserAuth {
                                 }
                                 continue loop1;
                             default:
-                                //System.err.println("USERAUTH fail ("+command+")");
-                                //throw new JSchException("USERAUTH fail ("+command+")");
                                 break loop1;
                         }
                     }
@@ -111,19 +109,14 @@ class UserAuthPublicKey extends UserAuth {
                     }
                 }
 
-//System.err.println("UserAuthPublicKey: identity.isEncrypted()="+identity.isEncrypted());
-
                 int count = 5;
                 while (true) {
                     if ((identity.isEncrypted() && passphrase == null)) {
                         if (userinfo == null) {
                             throw new JSchException("USERAUTH fail");
                         }
-                        if (identity.isEncrypted() &&
-                                !userinfo.promptPassphrase("Passphrase for " + identity.getName())) {
+                        if (identity.isEncrypted() && !userinfo.promptPassphrase("Passphrase for " + identity.getName())) {
                             throw new JSchAuthCancelException("publickey");
-                            //throw new JSchException("USERAUTH cancel");
-                            //break;
                         }
                         String _passphrase = userinfo.getPassphrase();
                         if (_passphrase != null) {
@@ -133,8 +126,7 @@ class UserAuthPublicKey extends UserAuth {
 
                     if (!identity.isEncrypted() || passphrase != null) {
                         if (identity.setPassphrase(passphrase)) {
-                            if (passphrase != null &&
-                                    (session.getIdentityRepository() instanceof IdentityRepository.Wrapper)) {
+                            if (passphrase != null && (session.getIdentityRepository() instanceof IdentityRepository.Wrapper)) {
                                 ((IdentityRepository.Wrapper) session.getIdentityRepository()).check();
                             }
                             break;
@@ -150,7 +142,6 @@ class UserAuthPublicKey extends UserAuth {
 
                 Util.bzero(passphrase);
                 passphrase = null;
-//System.err.println("UserAuthPublicKey: identity.isEncrypted()="+identity.isEncrypted());
 
                 if (identity.isEncrypted()) {
                     continue;
@@ -158,8 +149,6 @@ class UserAuthPublicKey extends UserAuth {
                 if (pubkeyblob == null) {
                     pubkeyblob = identity.getPublicKeyBlob();
                 }
-
-//System.err.println("UserAuthPublicKey: pubkeyblob="+pubkeyblob);
 
                 if (pubkeyblob == null) {
                     continue;
@@ -182,10 +171,6 @@ class UserAuthPublicKey extends UserAuth {
                 buf.putByte((byte) 1);
                 buf.putString(Util.str2byte(identity.getAlgName()));
                 buf.putString(pubkeyblob);
-
-//      byte[] tmp=new byte[buf.index-5];
-//      System.arraycopy(buf.buffer, 5, tmp, 0, tmp.length);
-//      buf.putString(signature);
 
                 byte[] sid = session.getSessionId();
                 int sidlen = sid.length;
@@ -228,16 +213,12 @@ class UserAuthPublicKey extends UserAuth {
                             buf.getByte();
                             byte[] foo = buf.getString();
                             int partial_success = buf.getByte();
-                            //System.err.println(new String(foo)+
-                            //                   " partial_success:"+(partial_success!=0));
                             if (partial_success != 0) {
                                 throw new JSchPartialAuthException(Util.byte2str(foo));
                             }
                             session.auth_failures++;
                             break loop2;
                     }
-                    //System.err.println("USERAUTH fail ("+command+")");
-                    //throw new JSchException("USERAUTH fail ("+command+")");
                     break;
                 }
             }

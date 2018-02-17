@@ -45,7 +45,7 @@ class UserAuthKeyboardInteractive extends UserAuth {
 
         boolean cancel = false;
 
-        byte[] _username = null;
+        byte[] _username;
         _username = Util.str2byte(username);
 
         while (true) {
@@ -65,7 +65,6 @@ class UserAuthKeyboardInteractive extends UserAuth {
             buf.putByte((byte) SSH_MSG_USERAUTH_REQUEST);
             buf.putString(_username);
             buf.putString(Util.str2byte("ssh-connection"));
-            //buf.putString("ssh-userauth".getBytes());
             buf.putString(Util.str2byte("keyboard-interactive"));
             buf.putString(Util.empty);
             buf.putString(Util.empty);
@@ -173,9 +172,9 @@ class UserAuthKeyboardInteractive extends UserAuth {
                             buf.putInt(0);
                         }
 
-						if (response == null) {
-							cancel = true;
-						}
+                        if (response == null) {
+                            cancel = true;
+                        }
                     } else {
                         buf.putInt(num);
                         for (int i = 0; i < num; i++) {

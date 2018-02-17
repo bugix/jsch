@@ -29,8 +29,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+
 public interface KeyPairGenECDSA {
-    void init(int key_size) throws Exception;
+    void init(int key_size) throws JSchException, NoSuchAlgorithmException, InvalidAlgorithmParameterException;
 
     byte[] getD();
 

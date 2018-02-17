@@ -29,8 +29,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import java.security.NoSuchAlgorithmException;
+
 public interface HASH {
-    void init();
+    void init() throws NoSuchAlgorithmException;
 
     int getBlockSize();
 

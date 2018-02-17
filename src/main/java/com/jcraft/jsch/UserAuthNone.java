@@ -36,7 +36,6 @@ class UserAuthNone extends UserAuth {
     public boolean start(Session session) throws Exception {
         super.start(session);
 
-
         // send
         // byte      SSH_MSG_SERVICE_REQUEST(5)
         // string    service name "ssh-userauth"
@@ -46,8 +45,7 @@ class UserAuthNone extends UserAuth {
         session.write(packet);
 
         if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "SSH_MSG_SERVICE_REQUEST sent");
+            JSch.getLogger().log(Logger.INFO, "SSH_MSG_SERVICE_REQUEST sent");
         }
 
         // receive

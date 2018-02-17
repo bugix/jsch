@@ -29,17 +29,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-public interface Cipher {
-    int ENCRYPT_MODE = 0;
-    int DECRYPT_MODE = 1;
+import java.security.InvalidKeyException;
+import java.security.spec.InvalidKeySpecException;
 
-    int getIVSize();
+public interface SigningDSA extends Signing {
+    void setPubKey(byte[] y, byte[] p, byte[] q, byte[] g) throws InvalidKeySpecException, InvalidKeyException;
 
-    int getBlockSize();
-
-    void init(int mode, byte[] key, byte[] iv) throws Exception;
-
-    void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws Exception;
-
-    boolean isCBC();
+    void setPrvKey(byte[] x, byte[] p, byte[] q, byte[] g) throws InvalidKeySpecException, InvalidKeyException;
 }

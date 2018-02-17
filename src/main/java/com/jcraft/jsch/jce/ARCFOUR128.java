@@ -29,54 +29,60 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jce;
 
-import com.jcraft.jsch.Cipher;
+import com.jcraft.jsch.Ciphering;
 
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.ShortBufferException;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
-public class ARCFOUR128 implements Cipher {
+public class ARCFOUR128 implements Ciphering {
     private static final int ivsize = 8;
     private static final int bsize = 16;
     private static final int skip = 1536;
-    private javax.crypto.Cipher cipher;
+    private Cipher cipher;
 
+    @Override
     public int getIVSize() {
         return ivsize;
     }
 
+    @Override
     public int getBlockSize() {
         return bsize;
     }
 
-    public void init(int mode, byte[] key, byte[] iv) throws Exception {
+    @Override
+    public void init(int mode, byte[] key, byte[] iv) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, ShortBufferException {
         byte[] tmp;
         if (key.length > bsize) {
             tmp = new byte[bsize];
             System.arraycopy(key, 0, tmp, 0, tmp.length);
             key = tmp;
         }
-        try {
-            cipher = javax.crypto.Cipher.getInstance("RC4");
-            SecretKeySpec _key = new SecretKeySpec(key, "RC4");
-            synchronized (javax.crypto.Cipher.class) {
-                cipher.init((mode == ENCRYPT_MODE ?
-                                javax.crypto.Cipher.ENCRYPT_MODE :
-                                javax.crypto.Cipher.DECRYPT_MODE),
-                        _key);
-            }
-            byte[] foo = new byte[1];
-            for (int i = 0; i < skip; i++) {
-                cipher.update(foo, 0, 1, foo, 0);
-            }
-        } catch (Exception e) {
-            cipher = null;
-            throw e;
+
+        cipher = Cipher.getInstance("RC4");
+        SecretKeySpec _key = new SecretKeySpec(key, "RC4");
+        synchronized (Cipher.class) {
+            cipher.init((mode == ENCRYPT_MODE ?
+                            Cipher.ENCRYPT_MODE :
+                            Cipher.DECRYPT_MODE),
+                    _key);
+        }
+        byte[] foo = new byte[1];
+        for (int i = 0; i < skip; i++) {
+            cipher.update(foo, 0, 1, foo, 0);
         }
     }
 
-    public void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws Exception {
+    @Override
+    public void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws ShortBufferException {
         cipher.update(foo, s1, len, bar, s2);
     }
 
+    @Override
     public boolean isCBC() {
         return false;
     }

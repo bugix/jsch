@@ -111,7 +111,6 @@ public class KeyPairECDSA extends KeyPair {
         byte[][] tmp = new byte[2][];
         byte[] r_array = new byte[(point.length - i) / 2];
         byte[] s_array = new byte[(point.length - i) / 2];
-        // point[0] == 0x04 == POINT_CONVERSION_UNCOMPRESSED
         System.arraycopy(point, i, r_array, 0, r_array.length);
         System.arraycopy(point, i + r_array.length, s_array, 0, s_array.length);
         tmp[0] = r_array;
@@ -129,14 +128,10 @@ public class KeyPairECDSA extends KeyPair {
             prv_array = keypairgen.getD();
             r_array = keypairgen.getR();
             s_array = keypairgen.getS();
-            name = Util.str2byte(names[prv_array.length >= 64 ? 2 :
-                    (prv_array.length >= 48 ? 1 : 0)]);
-            keypairgen = null;
+            name = Util.str2byte(names[prv_array.length >= 64 ? 2 : (prv_array.length >= 48 ? 1 : 0)]);
+
         } catch (Exception e) {
-            if (e instanceof Throwable) {
-                throw new JSchException(e.toString(), e);
-            }
-            throw new JSchException(e.toString());
+            throw new JSchException(e.toString(), e);
         }
     }
 
@@ -187,37 +182,16 @@ public class KeyPairECDSA extends KeyPair {
         index = writeINTEGER(plain, index, tmp);
         index = writeOCTETSTRING(plain, index, prv_array);
         index = writeDATA(plain, (byte) 0xa0, index, oid);
-        index = writeDATA(plain, (byte) 0xa1, index, point);
+        writeDATA(plain, (byte) 0xa1, index, point);
 
         return plain;
     }
 
     boolean parse(byte[] plain) {
         try {
-
             if (vendor == VENDOR_FSECURE) {
-        /*
-	if(plain[0]!=0x30){              // FSecure
-	  return true;
-	}
-	return false;
-        */
                 return false;
             } else if (vendor == VENDOR_PUTTY) {
-        /*
-        Buffer buf=new Buffer(plain);
-        buf.skip(plain.length);
-
-        try {
-          byte[][] tmp = buf.getBytes(1, "");
-          prv_array = tmp[0];
-        }
-        catch(JSchException e){
-          return false;
-        }
-
-        return true;
-        */
                 return false;
             }
 
@@ -303,7 +277,6 @@ public class KeyPairECDSA extends KeyPair {
 
             byte[] Q_array = new byte[length];
             System.arraycopy(plain, index, Q_array, 0, length);
-            index += length;
 
             byte[][] tmp = fromPoint(Q_array);
             r_array = tmp[0];
@@ -314,8 +287,6 @@ public class KeyPairECDSA extends KeyPair {
                         (prv_array.length >= 48 ? 384 : 256);
             }
         } catch (Exception e) {
-            //System.err.println(e);
-            //e.printStackTrace();
             return false;
         }
         return true;
@@ -357,8 +328,8 @@ public class KeyPairECDSA extends KeyPair {
 
     public byte[] getSignature(byte[] data) {
         try {
-            Class<SignatureECDSA> c = (Class<SignatureECDSA>) Class.forName(JSch.getConfig("signature.ecdsa"));
-            SignatureECDSA ecdsa = (c.newInstance());
+            Class<SigningECDSA> c = (Class<SigningECDSA>) Class.forName(JSch.getConfig("signature.ecdsa"));
+            SigningECDSA ecdsa = (c.newInstance());
             ecdsa.init();
             ecdsa.setPrvKey(prv_array);
 
@@ -374,10 +345,10 @@ public class KeyPairECDSA extends KeyPair {
         return null;
     }
 
-    public Signature getVerifier() {
+    public Signing getVerifier() {
         try {
-            Class<SignatureECDSA> c = (Class<SignatureECDSA>) Class.forName(JSch.getConfig("signature.ecdsa"));
-            final SignatureECDSA ecdsa = c.newInstance();
+            Class<SigningECDSA> c = (Class<SigningECDSA>) Class.forName(JSch.getConfig("signature.ecdsa"));
+            final SigningECDSA ecdsa = c.newInstance();
             ecdsa.init();
 
             if (r_array == null && s_array == null && getPublicKeyBlob() != null) {
@@ -391,7 +362,6 @@ public class KeyPairECDSA extends KeyPair {
             ecdsa.setPubKey(r_array, s_array);
             return ecdsa;
         } catch (Exception e) {
-            //System.err.println("e "+e);
         }
         return null;
     }

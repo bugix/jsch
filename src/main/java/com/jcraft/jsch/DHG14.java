@@ -189,7 +189,6 @@ public class DHG14 extends KeyExchange {
                 buf.getByte(foo);
                 sha.update(foo, 0, foo.length);
                 H = sha.digest();
-                //System.err.print("H -> "); //dump(H, 0, H.length);
 
                 i = 0;
                 j = 0;

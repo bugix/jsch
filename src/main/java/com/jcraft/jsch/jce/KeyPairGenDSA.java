@@ -31,6 +31,7 @@ package com.jcraft.jsch.jce;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -46,7 +47,8 @@ public class KeyPairGenDSA implements com.jcraft.jsch.KeyPairGenDSA {
     private byte[] q;
     private byte[] g;
 
-    public void init(int key_size) throws Exception {
+    @Override
+    public void init(int key_size) throws NoSuchAlgorithmException {
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("DSA");
         keyGen.initialize(key_size, new SecureRandom());
         KeyPair pair = keyGen.generateKeyPair();

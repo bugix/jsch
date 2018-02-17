@@ -71,12 +71,8 @@ class PortWatcher implements Runnable {
                     new ServerSocket(lport, 0, boundaddress) :
                     factory.createServerSocket(lport, 0, boundaddress);
         } catch (Exception e) {
-            //System.err.println(e);
             String message = "PortForwardingL: local port " + address + ":" + lport + " cannot be bound.";
-            if (e instanceof Throwable) {
-                throw new JSchException(message, e);
-            }
-            throw new JSchException(message);
+            throw new JSchException(message, e);
         }
         if (lport == 0) {
             int assigned = ss.getLocalPort();
@@ -114,9 +110,8 @@ class PortWatcher implements Runnable {
             for (int i = 0; i < pool.size(); i++) {
                 PortWatcher p = (pool.elementAt(i));
                 if (p.session == session && p.lport == lport) {
-                    if (/*p.boundaddress.isAnyLocalAddress() ||*/
-                            (anyLocalAddress != null && p.boundaddress.equals(anyLocalAddress)) ||
-                                    p.boundaddress.equals(addr)) {
+                    if ((anyLocalAddress != null && p.boundaddress.equals(anyLocalAddress))
+                            || p.boundaddress.equals(addr)) {
                         return p;
                     }
                 }
@@ -194,7 +189,6 @@ class PortWatcher implements Runnable {
                 channel.connect(connectTimeout);
             }
         } catch (Exception e) {
-            //System.err.println("! "+e);
         }
         delete();
     }

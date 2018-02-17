@@ -29,10 +29,11 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jcraft;
 
+import com.jcraft.jsch.Compressing;
 import com.jcraft.jzlib.JZlib;
 import com.jcraft.jzlib.ZStream;
 
-public class Compression implements com.jcraft.jsch.Compression {
+public class Compression implements Compressing {
     static private final int BUF_SIZE = 4096;
     private final ZStream stream;
     private final byte[] tmpbuf = new byte[BUF_SIZE];
@@ -43,14 +44,11 @@ public class Compression implements com.jcraft.jsch.Compression {
     }
 
     public void init(int type, int level) {
-        int type1;
         if (type == DEFLATER) {
             stream.deflateInit(level);
-            type1 = DEFLATER;
         } else if (type == INFLATER) {
             stream.inflateInit();
             inflated_buf = new byte[BUF_SIZE];
-            type1 = INFLATER;
         }
     }
 
@@ -131,7 +129,7 @@ public class Compression implements com.jcraft.jsch.Compression {
                     length[0] = inflated_end;
                     return buffer;
                 default:
-                    System.err.println("uncompress: inflate returnd " + status);
+                    System.err.println("uncompress: inflate returned " + status);
                     return null;
             }
         }

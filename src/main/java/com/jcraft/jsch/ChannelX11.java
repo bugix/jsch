@@ -90,10 +90,10 @@ class ChannelX11 extends Channel {
         synchronized (faked_cookie_hex_pool) {
             byte[] foo = faked_cookie_hex_pool.get(session);
             if (foo == null) {
-                Random random = Session.random;
+                Randomizing randomizing = Session.randomizing;
                 foo = new byte[16];
-                synchronized (random) {
-                    random.fill(foo, 0, 16);
+                synchronized (randomizing) {
+                    randomizing.fill(foo, 0, 16);
                 }
 
                 faked_cookie_pool.put(session, foo);
@@ -170,7 +170,6 @@ class ChannelX11 extends Channel {
                 getSession().write(packet, this, i);
             }
         } catch (Exception e) {
-            //System.err.println(e);
         }
         disconnect();
     }

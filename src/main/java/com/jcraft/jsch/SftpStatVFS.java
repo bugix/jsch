@@ -31,19 +31,7 @@ package com.jcraft.jsch;
 
 public class SftpStatVFS {
 
-  /*
-   It seems data is serializsed according to sys/statvfs.h; for example,
-   http://pubs.opengroup.org/onlinepubs/009604499/basedefs/sys/statvfs.h.html
-  */
-
-    int flags = 0;
     long size;
-    int uid;
-    int gid;
-    int permissions;
-    int atime;
-    int mtime;
-    String[] extended = null;
     private long bsize;
     private long frsize;
     private long blocks;
@@ -146,5 +134,4 @@ public class SftpStatVFS {
         return (int) (100 * (getBlocks() - getFreeBlocks()) / getBlocks());
     }
 
-//  public String toString() { return ""; }
 }

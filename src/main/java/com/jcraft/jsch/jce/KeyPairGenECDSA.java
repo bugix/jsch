@@ -31,8 +31,10 @@ package com.jcraft.jsch.jce;
 
 import com.jcraft.jsch.JSchException;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
@@ -45,7 +47,8 @@ public class KeyPairGenECDSA implements com.jcraft.jsch.KeyPairGenECDSA {
     private ECPublicKey pubKey;
     private ECPrivateKey prvKey;
 
-    public void init(int key_size) throws Exception {
+    @Override
+    public void init(int key_size) throws JSchException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         String name = null;
         switch (key_size) {
             case 256:
@@ -91,14 +94,17 @@ public class KeyPairGenECDSA implements com.jcraft.jsch.KeyPairGenECDSA {
         }
     }
 
+    @Override
     public byte[] getD() {
         return d;
     }
 
+    @Override
     public byte[] getR() {
         return r;
     }
 
+    @Override
     public byte[] getS() {
         return s;
     }
@@ -114,16 +120,6 @@ public class KeyPairGenECDSA implements com.jcraft.jsch.KeyPairGenECDSA {
     private byte[] insert0(byte[] buf) {
         byte[] tmp = new byte[buf.length + 1];
         System.arraycopy(buf, 0, tmp, 1, buf.length);
-        bzero(buf);
-        return tmp;
-    }
-
-    private byte[] chop0(byte[] buf) {
-        if (buf[0] != 0 || (buf[1] & 0x80) == 0) {
-            return buf;
-        }
-        byte[] tmp = new byte[buf.length - 1];
-        System.arraycopy(buf, 1, tmp, 0, tmp.length);
         bzero(buf);
         return tmp;
     }

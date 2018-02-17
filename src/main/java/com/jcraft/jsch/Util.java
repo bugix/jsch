@@ -373,17 +373,13 @@ class Util {
     }
 
     static Socket createSocket(String host, int port, int timeout) throws JSchException {
-        Socket socket = null;
+        Socket socket;
         if (timeout == 0) {
             try {
                 socket = new Socket(host, port);
                 return socket;
             } catch (Exception e) {
-                String message = e.toString();
-                if (e instanceof Throwable) {
-                    throw new JSchException(message, e);
-                }
-                throw new JSchException(message);
+                throw new JSchException(e.getMessage(), e);
             }
         }
         final String _host = host;

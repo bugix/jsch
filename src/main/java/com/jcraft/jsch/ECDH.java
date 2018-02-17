@@ -29,10 +29,14 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 public interface ECDH {
     void init(int size) throws Exception;
 
-    byte[] getSecret(byte[] r, byte[] s) throws Exception;
+    byte[] getSecret(byte[] r, byte[] s) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException;
 
     byte[] getQ();
 

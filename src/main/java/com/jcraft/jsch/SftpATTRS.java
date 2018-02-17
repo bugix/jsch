@@ -75,15 +75,17 @@ public class SftpATTRS {
     static final int S_IFREG = 0x8000;
     static final int S_IFLNK = 0xa000;
     static final int S_IFSOCK = 0xc000;
+
     private static final int pmask = 0xFFF;
-    int flags = 0;
     long size;
     int uid;
     int gid;
-    int permissions;
-    int atime;
-    int mtime;
-    String[] extended = null;
+    private int flags = 0;
+    private int permissions;
+    private int atime;
+    private int mtime;
+    private String[] extended = null;
+
     private SftpATTRS() {
     }
 
@@ -354,13 +356,5 @@ public class SftpATTRS {
     public String toString() {
         return (getPermissionsString() + " " + getUId() + " " + getGId() + " " + getSize() + " " + getMtimeString());
     }
-  /*
-  public String toString(){
-    return (((flags&SSH_FILEXFER_ATTR_SIZE)!=0) ? ("size:"+size+" ") : "")+
-           (((flags&SSH_FILEXFER_ATTR_UIDGID)!=0) ? ("uid:"+uid+",gid:"+gid+" ") : "")+
-           (((flags&SSH_FILEXFER_ATTR_PERMISSIONS)!=0) ? ("permissions:0x"+Integer.toHexString(permissions)+" ") : "")+
-           (((flags&SSH_FILEXFER_ATTR_ACMODTIME)!=0) ? ("atime:"+atime+",mtime:"+mtime+" ") : "")+
-           (((flags&SSH_FILEXFER_ATTR_EXTENDED)!=0) ? ("extended:?"+" ") : "");
-  }
-  */
+
 }

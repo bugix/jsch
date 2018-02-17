@@ -31,13 +31,13 @@ package com.jcraft.jsch;
 
 public class HostKey {
 
-    public static final int SSHDSS = 1;
-    public static final int SSHRSA = 2;
-    public static final int ECDSA256 = 3;
-    public static final int ECDSA384 = 4;
-    public static final int ECDSA521 = 5;
     protected static final int GUESS = 0;
     static final int UNKNOWN = 6;
+    private static final int SSHDSS = 1;
+    private static final int SSHRSA = 2;
+    private static final int ECDSA256 = 3;
+    private static final int ECDSA384 = 4;
+    private static final int ECDSA521 = 5;
     private static final byte[][] names = {
             Util.str2byte("ssh-dss"),
             Util.str2byte("ssh-rsa"),
@@ -45,7 +45,7 @@ public class HostKey {
             Util.str2byte("ecdsa-sha2-nistp384"),
             Util.str2byte("ecdsa-sha2-nistp521")
     };
-    protected final String marker;
+    private final String marker;
     protected String host;
     protected int type;
     protected byte[] key;
@@ -115,7 +115,7 @@ public class HostKey {
         return Util.byte2str(Util.toBase64(key, 0, key.length));
     }
 
-    public String getFingerPrint(JSch jsch) {
+    public String getFingerPrint() {
         HASH hash = null;
         try {
             Class<HASH> c = (Class<HASH>) Class.forName(JSch.getConfig("md5"));

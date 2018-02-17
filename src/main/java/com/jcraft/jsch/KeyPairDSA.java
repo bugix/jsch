@@ -38,12 +38,12 @@ public class KeyPairDSA extends KeyPair {
     private byte[] G_array;
     private byte[] pub_array;
     private byte[] prv_array;
-    //private int key_size=0;
     private int key_size = 1024;
 
     public KeyPairDSA(JSch jsch) {
         this(jsch, null, null, null, null, null);
     }
+
     public KeyPairDSA(JSch jsch,
                       byte[] P_array,
                       byte[] Q_array,
@@ -89,14 +89,8 @@ public class KeyPairDSA extends KeyPair {
             G_array = keypairgen.getG();
             pub_array = keypairgen.getY();
             prv_array = keypairgen.getX();
-
-            keypairgen = null;
         } catch (Exception e) {
-            //System.err.println("KeyPairDSA: "+e);
-            if (e instanceof Throwable) {
-                throw new JSchException(e.toString(), e);
-            }
-            throw new JSchException(e.toString());
+            throw new JSchException(e.getMessage(), e);
         }
     }
 
@@ -128,7 +122,7 @@ public class KeyPairDSA extends KeyPair {
         index = writeINTEGER(plain, index, Q_array);
         index = writeINTEGER(plain, index, G_array);
         index = writeINTEGER(plain, index, pub_array);
-        index = writeINTEGER(plain, index, prv_array);
+        writeINTEGER(plain, index, prv_array);
         return plain;
     }
 
@@ -257,14 +251,11 @@ public class KeyPairDSA extends KeyPair {
             }
             prv_array = new byte[length];
             System.arraycopy(plain, index, prv_array, 0, length);
-            index += length;
 
             if (P_array != null) {
                 key_size = (new java.math.BigInteger(P_array)).bitLength();
             }
         } catch (Exception e) {
-            //System.err.println(e);
-            //e.printStackTrace();
             return false;
         }
         return true;
@@ -303,7 +294,7 @@ public class KeyPairDSA extends KeyPair {
     public byte[] getSignature(byte[] data) {
         try {
             Class c = Class.forName(JSch.getConfig("signature.dss"));
-            SignatureDSA dsa = (SignatureDSA) (c.newInstance());
+            SigningDSA dsa = (SigningDSA) (c.newInstance());
             dsa.init();
             dsa.setPrvKey(prv_array, P_array, Q_array, G_array);
 
@@ -314,15 +305,14 @@ public class KeyPairDSA extends KeyPair {
             tmp[1] = sig;
             return Buffer.fromBytes(tmp).buffer;
         } catch (Exception e) {
-            //System.err.println("e "+e);
         }
         return null;
     }
 
-    public Signature getVerifier() {
+    public Signing getVerifier() {
         try {
-            Class<SignatureDSA> c = (Class<SignatureDSA>) Class.forName(JSch.getConfig("signature.dss"));
-            SignatureDSA dsa = c.newInstance();
+            Class<SigningDSA> c = (Class<SigningDSA>) Class.forName(JSch.getConfig("signature.dss"));
+            SigningDSA dsa = c.newInstance();
             dsa.init();
 
             if (pub_array == null && P_array == null && getPublicKeyBlob() != null) {
@@ -337,7 +327,6 @@ public class KeyPairDSA extends KeyPair {
             dsa.setPubKey(pub_array, P_array, Q_array, G_array);
             return dsa;
         } catch (Exception e) {
-            //System.err.println("e "+e);
         }
         return null;
     }

@@ -133,21 +133,4 @@ public class IO {
         } catch (Exception ignored) {
         }
     }
-
-  /*
-  public void finalize() throws Throwable{
-    try{
-      if(in!=null) in.close();
-    }
-    catch(Exception ee){}
-    try{
-      if(out!=null) out.close();
-    }
-    catch(Exception ee){}
-    try{
-      if(out_ext!=null) out_ext.close();
-    }
-    catch(Exception ee){}
-  }
-  */
 }

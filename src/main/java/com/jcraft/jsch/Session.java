@@ -75,52 +75,50 @@ public class Session implements Runnable {
     private static final int PACKET_MAX_SIZE = 256 * 1024;
     private static final byte[] keepalivemsg = Util.str2byte("keepalive@jcraft.com");
     private static final byte[] nomoresessions = Util.str2byte("no-more-sessions@openssh.com");
-    static Random random;
+    static Randomizing randomizing;
     final Packet packet;
     final JSch jsch;
-    final int[] uncompress_len = new int[1];
-    final int[] compress_len = new int[1];
+    private final int[] uncompress_len = new int[1];
+    private final int[] compress_len = new int[1];
     private final Object lock = new Object();
     private final GlobalRequestReply grr = new GlobalRequestReply();
     protected boolean daemon_thread = false;
-    String[] guess = null;
     boolean x11_forwarding = false;
     boolean agent_forwarding = false;
     InputStream in = null;
     OutputStream out = null;
     Buffer buf;
-    SocketFactory socket_factory = null;
     int max_auth_tries = 6;
     int auth_failures = 0;
-    String host = "127.0.0.1";
-    String org_host = "127.0.0.1";
-    int port = 22;
-    String username = null;
+    String host;
+    int port;
     byte[] password = null;
     Runnable thread;
-    private byte[] V_S;                                 // server version
+    private String[] guess = null;
+    private SocketFactory socket_factory = null;
+    private String org_host;
+    private String username;
+    private byte[] V_S; // server version
     private byte[] V_C = Util.str2byte("SSH-2.0-JSCH-" + JSch.VERSION); // client version
     private byte[] I_C; // the payload of the client's SSH_MSG_KEXINIT
-    private byte[] K_S; // the host key
     private byte[] session_id;
     private int seqi = 0;
     private int seqo = 0;
-    private Cipher s2ccipher;
-    private Cipher c2scipher;
+    private Ciphering s2ccipher;
+    private Ciphering c2scipher;
     private MAC s2cmac;
     private MAC c2smac;
-    //private byte[] mac_buf;
     private byte[] s2cmac_result1;
     private byte[] s2cmac_result2;
-    private Compression deflater;
-    private Compression inflater;
+    private Compressing deflater;
+    private Compressing inflater;
     private IO io;
     private Socket socket;
     private int timeout = 0;
     private volatile boolean isConnected = false;
     private boolean isAuthed = false;
     private Thread connectThread = null;
-    private java.util.Hashtable<String, String> config = null;
+    private Hashtable<String, String> config = null;
     private Proxy proxy = null;
     private UserInfo userinfo;
     private String hostKeyAlias = null;
@@ -134,7 +132,6 @@ public class Session implements Runnable {
     private int s2ccipher_size = 8;
     private int c2scipher_size = 8;
 
-//public void start(){ (new Thread(this)).start();  }
     private HostKey hostkey = null;
 
     Session(JSch jsch, String username, String host, int port) throws JSchException {
@@ -163,9 +160,9 @@ public class Session implements Runnable {
 
     static boolean checkCipher(String cipher) {
         try {
-            Class<Cipher> c = (Class<Cipher>) Class.forName(cipher);
-            Cipher _c = c.newInstance();
-            _c.init(Cipher.ENCRYPT_MODE,
+            Class<Ciphering> c = (Class<Ciphering>) Class.forName(cipher);
+            Ciphering _c = c.newInstance();
+            _c.init(Ciphering.ENCRYPT_MODE,
                     new byte[_c.getBlockSize()],
                     new byte[_c.getIVSize()]);
             return true;
@@ -195,19 +192,18 @@ public class Session implements Runnable {
         }
 
         io = new IO();
-        if (random == null) {
+        if (randomizing == null) {
             try {
-                Class<Random> c = (Class<Random>) Class.forName(getConfig("random"));
-                random = c.newInstance();
+                Class<Randomizing> c = (Class<Randomizing>) Class.forName(getConfig("random"));
+                randomizing = c.newInstance();
             } catch (Exception e) {
                 throw new JSchException(e.toString(), e);
             }
         }
-        Packet.setRandom(random);
+        Packet.setRandomizing(randomizing);
 
         if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "Connecting to " + host + " port " + port);
+            JSch.getLogger().log(Logger.INFO, "Connecting to " + host + " port " + port);
         }
 
         try {
@@ -225,7 +221,6 @@ public class Session implements Runnable {
                     in = socket_factory.getInputStream(socket);
                     out = socket_factory.getOutputStream(socket);
                 }
-                //if(timeout>0){ socket.setSoTimeout(timeout); }
                 socket.setTcpNoDelay(true);
                 io.setInputStream(in);
                 io.setOutputStream(out);
@@ -245,8 +240,7 @@ public class Session implements Runnable {
             isConnected = true;
 
             if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                JSch.getLogger().log(Logger.INFO,
-                        "Connection established");
+                JSch.getLogger().log(Logger.INFO, "Connection established");
             }
 
             jsch.addSession(this);
@@ -289,12 +283,10 @@ public class Session implements Runnable {
                                 (buf.buffer[0] != 'S' || buf.buffer[1] != 'S' ||
                                         buf.buffer[2] != 'H' || buf.buffer[3] != '-'))) {
                     // It must not start with 'SSH-'
-                    //System.err.println(new String(buf.buffer, 0, i);
                     continue;
                 }
 
-                if (i == buf.buffer.length ||
-                        i < 7 ||                                      // SSH-1.99 or SSH-2.0
+                if (i == buf.buffer.length || i < 7 || // SSH-1.99 or SSH-2.0
                         (buf.buffer[4] == '1' && buf.buffer[6] != '9')  // SSH-1.5
                         ) {
                     throw new JSchException("invalid server's version string");
@@ -304,13 +296,10 @@ public class Session implements Runnable {
 
             V_S = new byte[i];
             System.arraycopy(buf.buffer, 0, V_S, 0, i);
-            //System.err.println("V_S: ("+i+") ["+new String(V_S)+"]");
 
             if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                JSch.getLogger().log(Logger.INFO,
-                        "Remote version string: " + Util.byte2str(V_S));
-                JSch.getLogger().log(Logger.INFO,
-                        "Local version string: " + Util.byte2str(V_C));
+                JSch.getLogger().log(Logger.INFO, "Remote version string: " + Util.byte2str(V_S));
+                JSch.getLogger().log(Logger.INFO, "Local version string: " + Util.byte2str(V_C));
             }
 
             send_kexinit();
@@ -322,8 +311,7 @@ public class Session implements Runnable {
             }
 
             if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                JSch.getLogger().log(Logger.INFO,
-                        "SSH_MSG_KEXINIT received");
+                JSch.getLogger().log(Logger.INFO, "SSH_MSG_KEXINIT received");
             }
 
             KeyExchange kex = receive_kexinit(buf);
@@ -334,7 +322,6 @@ public class Session implements Runnable {
                     kex_start_time = System.currentTimeMillis();
                     boolean result = kex.next(buf);
                     if (!result) {
-                        //System.err.println("verify: "+result);
                         in_kex = false;
                         throw new JSchException("verify: " + result);
                     }
@@ -363,7 +350,7 @@ public class Session implements Runnable {
 
             // receive SSH_MSG_NEWKEYS(21)
             buf = read(buf);
-            //System.err.println("read: 21 ? "+buf.getCommand());
+
             if (buf.getCommand() == SSH_MSG_NEWKEYS) {
 
                 if (JSch.getLogger().isEnabled(Logger.INFO)) {
@@ -409,8 +396,6 @@ public class Session implements Runnable {
                 if (smethods != null) {
                     smethods = smethods.toLowerCase();
                 } else {
-                    // methods: publickey,password,keyboard-interactive
-                    //smethods="publickey,password,keyboard-interactive";
                     smethods = cmethods;
                 }
             }
@@ -422,8 +407,7 @@ public class Session implements Runnable {
             loop:
             while (true) {
 
-                while (!auth &&
-                        cmethoda != null && methodi < cmethoda.length) {
+                while (!auth && cmethoda != null && methodi < cmethoda.length) {
 
                     String method = cmethoda[methodi++];
                     boolean acceptable = false;
@@ -437,8 +421,6 @@ public class Session implements Runnable {
                         continue;
                     }
 
-                    //System.err.println("  method: "+method);
-
                     if (JSch.getLogger().isEnabled(Logger.INFO)) {
                         String str = "Authentications that can continue: ";
                         for (int k = methodi - 1; k < cmethoda.length; k++) {
@@ -447,10 +429,8 @@ public class Session implements Runnable {
                                 str += ",";
                             }
                         }
-                        JSch.getLogger().log(Logger.INFO,
-                                str);
-                        JSch.getLogger().log(Logger.INFO,
-                                "Next authentication method: " + method);
+                        JSch.getLogger().log(Logger.INFO, str);
+                        JSch.getLogger().log(Logger.INFO, "Next authentication method: " + method);
                     }
 
                     ua = null;
@@ -462,8 +442,7 @@ public class Session implements Runnable {
                         }
                     } catch (Exception e) {
                         if (JSch.getLogger().isEnabled(Logger.WARN)) {
-                            JSch.getLogger().log(Logger.WARN,
-                                    "failed to load " + method + " method");
+                            JSch.getLogger().log(Logger.WARN, "failed to load " + method + " method");
                         }
                     }
 
@@ -471,10 +450,8 @@ public class Session implements Runnable {
                         auth_cancel = false;
                         try {
                             auth = ua.start(this);
-                            if (auth &&
-                                    JSch.getLogger().isEnabled(Logger.INFO)) {
-                                JSch.getLogger().log(Logger.INFO,
-                                        "Authentication succeeded (" + method + ").");
+                            if (auth && JSch.getLogger().isEnabled(Logger.INFO)) {
+                                JSch.getLogger().log(Logger.INFO, "Authentication succeeded (" + method + ").");
                             }
                         } catch (JSchAuthCancelException ee) {
                             auth_cancel = true;
@@ -485,7 +462,6 @@ public class Session implements Runnable {
                             if (!tmp.equals(smethods)) {
                                 methodi = 0;
                             }
-                            //System.err.println("PartialAuth: "+methods);
                             auth_cancel = false;
                             continue loop;
                         } catch (RuntimeException ee) {
@@ -493,7 +469,6 @@ public class Session implements Runnable {
                         } catch (JSchException ee) {
                             throw ee;
                         } catch (Exception ee) {
-                            //System.err.println("ee: "+ee); // SSH_MSG_DISCONNECT: 2 Too many authentication failures
                             if (JSch.getLogger().isEnabled(Logger.WARN)) {
                                 JSch.getLogger().log(Logger.WARN,
                                         "an exception during authentication\n" + ee.toString());
@@ -508,8 +483,7 @@ public class Session implements Runnable {
             if (!auth) {
                 if (auth_failures >= max_auth_tries) {
                     if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                        JSch.getLogger().log(Logger.INFO,
-                                "Login trials exceeds " + max_auth_tries);
+                        JSch.getLogger().log(Logger.INFO, "Login trials exceeds " + max_auth_tries);
                     }
                 }
                 if (auth_cancel) {
@@ -556,7 +530,7 @@ public class Session implements Runnable {
             } catch (Exception ignored) {
             }
             isConnected = false;
-            //e.printStackTrace();
+
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
             }
@@ -593,10 +567,10 @@ public class Session implements Runnable {
         if (!isAuthed &&
                 (guess[KeyExchange.PROPOSAL_ENC_ALGS_CTOS].equals("none") ||
                         (guess[KeyExchange.PROPOSAL_ENC_ALGS_STOC].equals("none")))) {
-            throw new JSchException("NONE Cipher should not be chosen before authentification is successed.");
+            throw new JSchException("NONE Ciphering should not be chosen before authentification is successed.");
         }
 
-        KeyExchange kex = null;
+        KeyExchange kex;
         try {
             Class<KeyExchange> c = (Class<KeyExchange>) Class.forName(getConfig(guess[KeyExchange.PROPOSAL_KEX_ALGS]));
             kex = (c.newInstance());
@@ -639,8 +613,7 @@ public class Session implements Runnable {
         }
 
         String server_host_key = getConfig("server_host_key");
-        String[] not_available_shks =
-                checkSignatures(getConfig("CheckSignatures"));
+        String[] not_available_shks = checkSignatures(getConfig("CheckSignatures"));
         if (not_available_shks != null && not_available_shks.length > 0) {
             server_host_key = Util.diffString(server_host_key, not_available_shks);
             if (server_host_key == null) {
@@ -652,7 +625,7 @@ public class Session implements Runnable {
         kex_start_time = System.currentTimeMillis();
 
         // byte      SSH_MSG_KEXINIT(20)
-        // byte[16]  cookie (random bytes)
+        // byte[16]  cookie (randomizing bytes)
         // string    kex_algorithms
         // string    server_host_key_algorithms
         // string    encryption_algorithms_client_to_server
@@ -667,8 +640,8 @@ public class Session implements Runnable {
         Packet packet = new Packet(buf);          // by user thread.
         packet.reset();
         buf.putByte((byte) SSH_MSG_KEXINIT);
-        synchronized (random) {
-            random.fill(buf.buffer, buf.index, 16);
+        synchronized (randomizing) {
+            randomizing.fill(buf.buffer, buf.index, 16);
             buf.skip(16);
         }
         buf.putString(Util.str2byte(kex));
@@ -691,8 +664,7 @@ public class Session implements Runnable {
         write(packet);
 
         if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "SSH_MSG_KEXINIT sent");
+            JSch.getLogger().log(Logger.INFO, "SSH_MSG_KEXINIT sent");
         }
     }
 
@@ -703,8 +675,7 @@ public class Session implements Runnable {
         write(packet);
 
         if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "SSH_MSG_NEWKEYS sent");
+            JSch.getLogger().log(Logger.INFO, "SSH_MSG_NEWKEYS sent");
         }
     }
 
@@ -714,8 +685,6 @@ public class Session implements Runnable {
         if (hostKeyAlias != null) {
             chost = hostKeyAlias;
         }
-
-        //System.err.println("shkc: "+shkc);
 
         byte[] K_S = kex.getHostKey();
         String key_type = kex.getKeyType();
@@ -766,7 +735,7 @@ public class Session implements Runnable {
                 if (shkc.equals("ask")) {
                     b = userinfo.promptYesNo(message +
                             "\nDo you want to delete the old key and insert the new key?");
-                } else {  // shkc.equals("yes")
+                } else {
                     userinfo.showMessage(message);
                 }
             }
@@ -776,19 +745,15 @@ public class Session implements Runnable {
             }
 
             synchronized (hkr) {
-                hkr.remove(chost,
-                        kex.getKeyAlgorithName(),
-                        null);
+                hkr.remove(chost, kex.getKeyAlgorithName(), null);
                 insert = true;
             }
         }
 
-        if ((shkc.equals("ask") || shkc.equals("yes")) &&
-                (i != HostKeyRepository.OK) && !insert) {
+        if ((shkc.equals("ask") || shkc.equals("yes")) && (i != HostKeyRepository.OK) && !insert) {
             if (shkc.equals("yes")) {
                 throw new JSchException("reject HostKey: " + host);
             }
-            //System.err.println("finger-print: "+key_fprint);
             if (userinfo != null) {
                 boolean foo = userinfo.promptYesNo(
                         "The authenticity of host '" + host + "' can't be established.\n" +
@@ -808,14 +773,12 @@ public class Session implements Runnable {
             }
         }
 
-        if (shkc.equals("no") &&
-                HostKeyRepository.NOT_INCLUDED == i) {
+        if (shkc.equals("no") && HostKeyRepository.NOT_INCLUDED == i) {
             insert = true;
         }
 
         if (i == HostKeyRepository.OK) {
-            HostKey[] keys =
-                    hkr.getHostKey(chost, kex.getKeyAlgorithName());
+            HostKey[] keys = hkr.getHostKey(chost, kex.getKeyAlgorithName());
             String _key = Util.byte2str(Util.toBase64(K_S, 0, K_S.length));
             for (HostKey key : keys) {
                 if (keys[i].getKey().equals(_key) &&
@@ -827,18 +790,15 @@ public class Session implements Runnable {
                                         "impersonate this host.");
                     }
                     if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                        JSch.getLogger().log(Logger.INFO,
-                                "Host '" + host + "' has provided revoked key.");
+                        JSch.getLogger().log(Logger.INFO, "Host '" + host + "' has provided revoked key.");
                     }
                     throw new JSchException("revoked HostKey: " + host);
                 }
             }
         }
 
-        if (i == HostKeyRepository.OK &&
-                JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "Host '" + host + "' is known and matches the " + key_type + " host key");
+        if (i == HostKeyRepository.OK && JSch.getLogger().isEnabled(Logger.INFO)) {
+            JSch.getLogger().log(Logger.INFO, "Host '" + host + "' is known and matches the " + key_type + " host key");
         }
 
         if (insert &&
@@ -867,30 +827,22 @@ public class Session implements Runnable {
             }
             return channel;
         } catch (Exception e) {
-            //e.printStackTrace();
         }
         return null;
     }
 
     // encode will bin invoked in write with synchronization.
     public void encode(Packet packet) throws Exception {
-//System.err.println("encode: "+packet.buffer.getCommand());
-//System.err.println("        "+packet.buffer.index);
-//if(packet.buffer.getCommand()==96){
-//Thread.dumpStack();
-//}
         if (deflater != null) {
             compress_len[0] = packet.buffer.index;
-            packet.buffer.buffer = deflater.compress(packet.buffer.buffer,
-                    5, compress_len);
+            packet.buffer.buffer = deflater.compress(packet.buffer.buffer, 5, compress_len);
             packet.buffer.index = compress_len[0];
         }
         if (c2scipher != null) {
-            //packet.padding(c2scipher.getIVSize());
             packet.padding(c2scipher_size);
             int pad = packet.buffer.buffer[4];
-            synchronized (random) {
-                random.fill(packet.buffer.buffer, packet.buffer.index - pad, pad);
+            synchronized (randomizing) {
+                randomizing.fill(packet.buffer.buffer, packet.buffer.index - pad, pad);
             }
         } else {
             packet.padding(8);
@@ -911,7 +863,7 @@ public class Session implements Runnable {
     }
 
     public Buffer read(Buffer buf) throws Exception {
-        int j = 0;
+        int j;
         label:
         while (true) {
             buf.reset();
@@ -929,9 +881,6 @@ public class Session implements Runnable {
                 start_discard(buf, s2ccipher, s2cmac, j, PACKET_MAX_SIZE);
             }
             int need = j + 4 - s2ccipher_size;
-            //if(need<0){
-            //  throw new IOException("invalid data");
-            //}
             if ((buf.index + need) > buf.buffer.length) {
                 byte[] foo = new byte[buf.index + need];
                 System.arraycopy(buf.buffer, 0, foo, 0, buf.index);
@@ -972,7 +921,6 @@ public class Session implements Runnable {
             seqi++;
 
             if (inflater != null) {
-                //inflater.uncompress(buf);
                 int pad = buf.buffer[4];
                 uncompress_len[0] = buf.index - 5 - pad;
                 byte[] foo = inflater.uncompress(buf.buffer, 5, uncompress_len);
@@ -986,7 +934,6 @@ public class Session implements Runnable {
             }
 
             int type = buf.getCommand() & 0xff;
-            //System.err.println("read: "+type);
             switch (type) {
                 case SSH_MSG_DISCONNECT:
                     buf.rewind();
@@ -999,7 +946,6 @@ public class Session implements Runnable {
                             reason_code +
                             " " + Util.byte2str(description) +
                             " " + Util.byte2str(language_tag));
-                    //break;
                 case SSH_MSG_IGNORE:
                     break;
                 case SSH_MSG_UNIMPLEMENTED:
@@ -1016,14 +962,6 @@ public class Session implements Runnable {
                     buf.rewind();
                     buf.getInt();
                     buf.getShort();
-/*
-	byte always_display=(byte)buf.getByte();
-	byte[] message=buf.getString();
-	byte[] language_tag=buf.getString();
-	System.err.println("SSH_MSG_DEBUG:"+
-			   " "+Util.byte2str(message)+
-			   " "+Util.byte2str(language_tag));
-*/
                     break;
                 case SSH_MSG_CHANNEL_WINDOW_ADJUST:
                     buf.rewind();
@@ -1052,11 +990,11 @@ public class Session implements Runnable {
         return buf;
     }
 
-    private void start_discard(Buffer buf, Cipher cipher, MAC mac,
+    private void start_discard(Buffer buf, Ciphering ciphering, MAC mac,
                                int packet_length, int discard) throws JSchException, IOException {
         MAC discard_mac = null;
 
-        if (!cipher.isCBC()) {
+        if (!ciphering.isCBC()) {
             throw new JSchException("Packet corrupt");
         }
 
@@ -1147,7 +1085,7 @@ public class Session implements Runnable {
 
             method = guess[KeyExchange.PROPOSAL_ENC_ALGS_STOC];
             c = Class.forName(getConfig(method));
-            s2ccipher = (Cipher) (c.newInstance());
+            s2ccipher = (Ciphering) (c.newInstance());
             while (s2ccipher.getBlockSize() > es2c.length) {
                 buf.reset();
                 buf.putMPInt(K);
@@ -1160,7 +1098,7 @@ public class Session implements Runnable {
                 System.arraycopy(foo, 0, bar, es2c.length, foo.length);
                 es2c = bar;
             }
-            s2ccipher.init(Cipher.DECRYPT_MODE, es2c, IVs2c);
+            s2ccipher.init(Ciphering.DECRYPT_MODE, es2c, IVs2c);
             s2ccipher_size = s2ccipher.getIVSize();
 
             method = guess[KeyExchange.PROPOSAL_MAC_ALGS_STOC];
@@ -1174,7 +1112,7 @@ public class Session implements Runnable {
 
             method = guess[KeyExchange.PROPOSAL_ENC_ALGS_CTOS];
             c = Class.forName(getConfig(method));
-            c2scipher = (Cipher) (c.newInstance());
+            c2scipher = (Ciphering) (c.newInstance());
             while (c2scipher.getBlockSize() > ec2s.length) {
                 buf.reset();
                 buf.putMPInt(K);
@@ -1187,7 +1125,7 @@ public class Session implements Runnable {
                 System.arraycopy(foo, 0, bar, ec2s.length, foo.length);
                 ec2s = bar;
             }
-            c2scipher.init(Cipher.ENCRYPT_MODE, ec2s, IVc2s);
+            c2scipher.init(Ciphering.ENCRYPT_MODE, ec2s, IVc2s);
             c2scipher_size = c2scipher.getIVSize();
 
             method = guess[KeyExchange.PROPOSAL_MAC_ALGS_CTOS];
@@ -1206,7 +1144,6 @@ public class Session implements Runnable {
                 throw e;
             }
             throw new JSchException(e.toString(), e);
-            //System.err.println("updatekeys: "+e);
         }
     }
 
@@ -1225,7 +1162,7 @@ public class Session implements Runnable {
      *   key = K1 || K2 || K3 || ...
      */
     private byte[] expandKey(Buffer buf, byte[] K, byte[] H, byte[] key,
-                             HASH hash, int required_length) throws Exception {
+                             HASH hash, int required_length) {
         byte[] result = key;
         int size = hash.getBlockSize();
         while (result.length < required_length) {
@@ -1243,7 +1180,7 @@ public class Session implements Runnable {
         return result;
     }
 
-    /*public*/ /*synchronized*/ void write(Packet packet, Channel c, int length) throws Exception {
+    void write(Packet packet, Channel c, int length) throws Exception {
         long t = getTimeout();
         while (true) {
             if (in_kex) {
@@ -1320,34 +1257,19 @@ public class Session implements Runnable {
                     c.rwsize -= length;
                     break;
                 }
-
-                //try{
-                //System.out.println("1wait: "+c.rwsize);
-                //  c.notifyme++;
-                //  c.wait(100);
-                //}
-                //catch(java.lang.InterruptedException e){
-                //}
-                //finally{
-                //  c.notifyme--;
-                //}
             }
         }
         _write(packet);
     }
 
     public void write(Packet packet) throws Exception {
-        // System.err.println("in_kex="+in_kex+" "+(packet.buffer.getCommand()));
         long t = getTimeout();
         while (in_kex) {
-            if (t > 0L &&
-                    (System.currentTimeMillis() - kex_start_time) > t &&
-                    !in_prompt
-                    ) {
+            if (t > 0L && (System.currentTimeMillis() - kex_start_time) > t && !in_prompt) {
                 throw new JSchException("timeout in waiting for rekeying process.");
             }
             byte command = packet.buffer.getCommand();
-            //System.err.println("command: "+command);
+
             if (command == SSH_MSG_KEXINIT ||
                     command == SSH_MSG_NEWKEYS ||
                     command == SSH_MSG_KEXDH_INIT ||
@@ -1421,12 +1343,10 @@ public class Session implements Runnable {
 
                 switch (msgType) {
                     case SSH_MSG_KEXINIT:
-//System.err.println("KEXINIT");
                         kex = receive_kexinit(buf);
                         break;
 
                     case SSH_MSG_NEWKEYS:
-//System.err.println("NEWKEYS");
                         send_newkeys();
                         receive_newkeys(buf, kex);
                         kex = null;
@@ -1450,7 +1370,6 @@ public class Session implements Runnable {
                         try {
                             channel.write(foo, start[0], length[0]);
                         } catch (Exception e) {
-//System.err.println(e);
                             try {
                                 channel.disconnect();
                             } catch (Exception ignored) {
@@ -2192,7 +2111,7 @@ public class Session implements Runnable {
      *
      * @param rport remote TCP port
      */
-    public void delPortForwardingR(int rport) throws JSchException {
+    public void delPortForwardingR(int rport) {
         this.delPortForwardingR(null, rport);
     }
 
@@ -2215,22 +2134,18 @@ public class Session implements Runnable {
         }
         String foo = getConfig(method);
         if (foo != null) {
-            if (method.equals("zlib") ||
-                    (isAuthed && method.equals("zlib@openssh.com"))) {
+            if (method.equals("zlib") || (isAuthed && method.equals("zlib@openssh.com"))) {
                 try {
-                    Class<Compression> c = (Class<Compression>) Class.forName(foo);
+                    Class<Compressing> c = (Class<Compressing>) Class.forName(foo);
                     deflater = c.newInstance();
                     int level = 6;
                     try {
                         level = Integer.parseInt(getConfig("compression_level"));
                     } catch (Exception ignored) {
                     }
-                    deflater.init(Compression.DEFLATER, level);
-                } catch (NoClassDefFoundError ee) {
-                    throw new JSchException(ee.toString(), ee);
-                } catch (Exception ee) {
-                    throw new JSchException(ee.toString(), ee);
-                    //System.err.println(foo+" isn't accessible.");
+                    deflater.init(Compressing.DEFLATER, level);
+                } catch (NoClassDefFoundError | InstantiationException | ClassNotFoundException | IllegalAccessException e) {
+                    throw new JSchException(e.getMessage(), e);
                 }
             }
         }
@@ -2246,9 +2161,9 @@ public class Session implements Runnable {
             if (method.equals("zlib") ||
                     (isAuthed && method.equals("zlib@openssh.com"))) {
                 try {
-                    Class<Compression> c = (Class<Compression>) Class.forName(foo);
+                    Class<Compressing> c = (Class<Compressing>) Class.forName(foo);
                     inflater = c.newInstance();
-                    inflater.init(Compression.INFLATER, 0);
+                    inflater.init(Compressing.INFLATER, 0);
                 } catch (Exception ee) {
                     throw new JSchException(ee.toString(), ee);
                     //System.err.println(foo+" isn't accessible.");
@@ -2587,8 +2502,8 @@ public class Session implements Runnable {
         String[] _sigs = Util.split(sigs, ",");
         for (String _sig : _sigs) {
             try {
-                Class<Signature> c = (Class<Signature>) Class.forName(JSch.getConfig(_sig));
-                final Signature sig = (c.newInstance());
+                Class<Signing> c = (Class<Signing>) Class.forName(JSch.getConfig(_sig));
+                final Signing sig = (c.newInstance());
                 sig.init();
             } catch (Exception e) {
                 result.addElement(_sig);

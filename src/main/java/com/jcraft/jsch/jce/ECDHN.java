@@ -29,9 +29,13 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jce;
 
+import com.jcraft.jsch.ECDH;
+
 import javax.crypto.KeyAgreement;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECFieldFp;
@@ -39,8 +43,9 @@ import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
 import java.security.spec.EllipticCurve;
+import java.security.spec.InvalidKeySpecException;
 
-public class ECDHN implements com.jcraft.jsch.ECDH {
+public class ECDHN implements ECDH {
     private static final BigInteger two = BigInteger.ONE.add(BigInteger.ONE);
     private static final BigInteger three = two.add(BigInteger.ONE);
     private byte[] Q_array;
@@ -62,7 +67,7 @@ public class ECDHN implements com.jcraft.jsch.ECDH {
         return Q_array;
     }
 
-    public byte[] getSecret(byte[] r, byte[] s) throws Exception {
+    public byte[] getSecret(byte[] r, byte[] s) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
 
         KeyFactory kf = KeyFactory.getInstance("EC");
         ECPoint w = new ECPoint(new BigInteger(1, r), new BigInteger(1, s));
@@ -116,26 +121,6 @@ public class ECDHN implements com.jcraft.jsch.ECDH {
         tmp[0] = 0x04;
         System.arraycopy(r_array, 0, tmp, 1, r_array.length);
         System.arraycopy(s_array, 0, tmp, 1 + r_array.length, s_array.length);
-        return tmp;
-    }
-
-    private byte[] insert0(byte[] buf) {
-        if ((buf[0] & 0x80) == 0) {
-            return buf;
-        }
-        byte[] tmp = new byte[buf.length + 1];
-        System.arraycopy(buf, 0, tmp, 1, buf.length);
-        bzero(buf);
-        return tmp;
-    }
-
-    private byte[] chop0(byte[] buf) {
-        if (buf[0] != 0) {
-            return buf;
-        }
-        byte[] tmp = new byte[buf.length - 1];
-        System.arraycopy(buf, 1, tmp, 0, tmp.length);
-        bzero(buf);
         return tmp;
     }
 

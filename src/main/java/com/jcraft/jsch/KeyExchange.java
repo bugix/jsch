@@ -224,10 +224,10 @@ public abstract class KeyExchange {
                 i += j;
                 n = tmp;
 
-                SignatureRSA sig = null;
+                SigningRSA sig = null;
                 try {
                     Class c = Class.forName(session.getConfig("signature.rsa"));
-                    sig = (SignatureRSA) (c.newInstance());
+                    sig = (SigningRSA) (c.newInstance());
                     sig.init();
                 } catch (Exception e) {
                     System.err.println(e);
@@ -277,10 +277,10 @@ public abstract class KeyExchange {
                 i += j;
                 f = tmp;
 
-                SignatureDSA sig = null;
+                SigningDSA sig = null;
                 try {
                     Class c = Class.forName(session.getConfig("signature.dss"));
-                    sig = (SignatureDSA) (c.newInstance());
+                    sig = (SigningDSA) (c.newInstance());
                     sig.init();
                 } catch (Exception e) {
                     System.err.println(e);
@@ -323,10 +323,10 @@ public abstract class KeyExchange {
                 i += (j - 1) / 2;
                 s = tmp;
 
-                SignatureECDSA sig = null;
+                SigningECDSA sig = null;
                 try {
                     Class c = Class.forName(session.getConfig("signature.ecdsa"));
-                    sig = (SignatureECDSA) (c.newInstance());
+                    sig = (SigningECDSA) (c.newInstance());
                     sig.init();
                 } catch (Exception e) {
                     System.err.println(e);

@@ -450,7 +450,7 @@ Changes since version 0.1.33:
 	  not been functional.                                     FIXED.
 - bugfix: the remote port-forwarding to the daemon had been broken
 	  since 0.1.30.                                            FIXED.
-- change: the cipher "aes128-cbc" will be used if AES is available.
+- change: the ciphering "aes128-cbc" will be used if AES is available.
 - change: the interface 'com.jcraft.jsch.ForwardedTCPIPDaemon' has been changed.
 - change: the data transfer rate will be improved on some environment.
 - feature: ChannelExec can control the size of pty;
@@ -526,7 +526,7 @@ Changes since version 0.1.29:
 	  classes) without them.  On Mac OS X, such new classes will
 	  be used automatically.                                     FIXED.
 - bugfix: the session will be crashed by the long banner message.    FIXED.
-- change: '/dev/random' will not be referred on Gnu/Linux.
+- change: '/dev/randomizing' will not be referred on Gnu/Linux.
 - change: if non-standard TCP port number is used, that number will
 	  be saved in known_hosts file as recent OpenSSH's ssh client does.
 - change: Channel#getOutputStream will not use Piped{Output,Input}Stream.
@@ -650,7 +650,7 @@ Changes since version 0.1.24:
 Changes since version 0.1.23:
 - bugfix: there was resource leak problems in closing local port forwardings.
   	  FIXED.
-- bugfix: there was a session crash problems in using aes-cbc cipher.  FIXED.
+- bugfix: there was a session crash problems in using aes-cbc ciphering.  FIXED.
 - change: ChannelSession.setPtySize was redefined.
 - feature: added SocketFactory for remote port forwarding.
 	   Session.setPortForwardingR(int rport, String host, int lport,
