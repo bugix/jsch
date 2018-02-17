@@ -29,6 +29,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
@@ -39,6 +42,8 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 public class Session implements Runnable {
+
+    private static final Logger log = LoggerFactory.getLogger(Session.class);
 
     // http://ietf.org/internet-drafts/draft-ietf-secsh-assignednumbers-01.txt
     static final int SSH_MSG_DISCONNECT = 1;
@@ -202,9 +207,7 @@ public class Session implements Runnable {
         }
         Packet.setRandomizing(randomizing);
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO, "Connecting to " + host + " port " + port);
-        }
+        log.info("Connecting to {} port {}", host, port);
 
         try {
             int i, j;
@@ -239,9 +242,7 @@ public class Session implements Runnable {
 
             isConnected = true;
 
-            if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                JSch.getLogger().log(Logger.INFO, "Connection established");
-            }
+            log.info("Connection established");
 
             jsch.addSession(this);
 
@@ -297,10 +298,8 @@ public class Session implements Runnable {
             V_S = new byte[i];
             System.arraycopy(buf.buffer, 0, V_S, 0, i);
 
-            if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                JSch.getLogger().log(Logger.INFO, "Remote version string: " + Util.byte2str(V_S));
-                JSch.getLogger().log(Logger.INFO, "Local version string: " + Util.byte2str(V_C));
-            }
+            log.info("Remote version string: {}", Util.byte2str(V_S));
+            log.info("Local version string: {}", Util.byte2str(V_C));
 
             send_kexinit();
 
@@ -310,9 +309,7 @@ public class Session implements Runnable {
                 throw new JSchException("invalid protocol: " + buf.getCommand());
             }
 
-            if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                JSch.getLogger().log(Logger.INFO, "SSH_MSG_KEXINIT received");
-            }
+            log.info("SSH_MSG_KEXINIT received");
 
             KeyExchange kex = receive_kexinit(buf);
 
@@ -353,10 +350,7 @@ public class Session implements Runnable {
 
             if (buf.getCommand() == SSH_MSG_NEWKEYS) {
 
-                if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                    JSch.getLogger().log(Logger.INFO,
-                            "SSH_MSG_NEWKEYS received");
-                }
+                log.info("SSH_MSG_NEWKEYS received");
 
                 receive_newkeys(buf, kex);
             } else {
@@ -373,10 +367,10 @@ public class Session implements Runnable {
                 throw new JSchException("MaxAuthTries: " + getConfig("MaxAuthTries"), e);
             }
 
-            boolean auth = false;
+            boolean auth;
             boolean auth_cancel = false;
 
-            UserAuth ua = null;
+            UserAuth ua;
             try {
                 Class<UserAuth> c = (Class<UserAuth>) Class.forName(getConfig("userauth.none"));
                 ua = c.newInstance();
@@ -421,7 +415,7 @@ public class Session implements Runnable {
                         continue;
                     }
 
-                    if (JSch.getLogger().isEnabled(Logger.INFO)) {
+                    if (log.isInfoEnabled()) {
                         String str = "Authentications that can continue: ";
                         for (int k = methodi - 1; k < cmethoda.length; k++) {
                             str += cmethoda[k];
@@ -429,8 +423,8 @@ public class Session implements Runnable {
                                 str += ",";
                             }
                         }
-                        JSch.getLogger().log(Logger.INFO, str);
-                        JSch.getLogger().log(Logger.INFO, "Next authentication method: " + method);
+                        log.info(str);
+                        log.info("Next authentication method: {}", method);
                     }
 
                     ua = null;
@@ -441,18 +435,14 @@ public class Session implements Runnable {
                             ua = c.newInstance();
                         }
                     } catch (Exception e) {
-                        if (JSch.getLogger().isEnabled(Logger.WARN)) {
-                            JSch.getLogger().log(Logger.WARN, "failed to load " + method + " method");
-                        }
+                        log.warn("failed to load {} method", method);
                     }
 
                     if (ua != null) {
                         auth_cancel = false;
                         try {
                             auth = ua.start(this);
-                            if (auth && JSch.getLogger().isEnabled(Logger.INFO)) {
-                                JSch.getLogger().log(Logger.INFO, "Authentication succeeded (" + method + ").");
-                            }
+                            log.info("Authentication succeeded ({}).", method);
                         } catch (JSchAuthCancelException ee) {
                             auth_cancel = true;
                         } catch (JSchPartialAuthException ee) {
@@ -464,15 +454,12 @@ public class Session implements Runnable {
                             }
                             auth_cancel = false;
                             continue loop;
-                        } catch (RuntimeException ee) {
-                            throw ee;
-                        } catch (JSchException ee) {
-                            throw ee;
-                        } catch (Exception ee) {
-                            if (JSch.getLogger().isEnabled(Logger.WARN)) {
-                                JSch.getLogger().log(Logger.WARN,
-                                        "an exception during authentication\n" + ee.toString());
-                            }
+                        } catch (RuntimeException e) {
+                            throw e;
+                        } catch (JSchException e) {
+                            throw e;
+                        } catch (Exception e) {
+                            log.warn("an exception during authentication", e);
                             break loop;
                         }
                     }
@@ -482,9 +469,7 @@ public class Session implements Runnable {
 
             if (!auth) {
                 if (auth_failures >= max_auth_tries) {
-                    if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                        JSch.getLogger().log(Logger.INFO, "Login trials exceeds " + max_auth_tries);
-                    }
+                    log.info("Login trials exceeds {}", max_auth_tries);
                 }
                 if (auth_cancel) {
                     throw new JSchException("Auth cancel");
@@ -663,9 +648,7 @@ public class Session implements Runnable {
 
         write(packet);
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO, "SSH_MSG_KEXINIT sent");
-        }
+        log.info("SSH_MSG_KEXINIT sent");
     }
 
     private void send_newkeys() throws Exception {
@@ -674,9 +657,7 @@ public class Session implements Runnable {
         buf.putByte((byte) SSH_MSG_NEWKEYS);
         write(packet);
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO, "SSH_MSG_NEWKEYS sent");
-        }
+        log.info("SSH_MSG_NEWKEYS sent");
     }
 
     private void checkHost(String chost, int port, KeyExchange kex) throws JSchException {
@@ -711,7 +692,7 @@ public class Session implements Runnable {
         boolean insert = false;
         if ((shkc.equals("ask") || shkc.equals("yes")) &&
                 i == HostKeyRepository.CHANGED) {
-            String file = null;
+            String file;
             synchronized (hkr) {
                 file = hkr.getKnownHostsRepositoryID();
             }
@@ -789,22 +770,20 @@ public class Session implements Runnable {
                                         "This could mean that a stolen key is being used to " +
                                         "impersonate this host.");
                     }
-                    if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                        JSch.getLogger().log(Logger.INFO, "Host '" + host + "' has provided revoked key.");
-                    }
+
+                    log.info("Host '{}' has provided revoked key.", host);
+
                     throw new JSchException("revoked HostKey: " + host);
                 }
             }
         }
 
-        if (i == HostKeyRepository.OK && JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO, "Host '" + host + "' is known and matches the " + key_type + " host key");
+        if (i == HostKeyRepository.OK) {
+            log.info("Host '{}' is known and matches the {} host key", host, key_type);
         }
 
-        if (insert &&
-                JSch.getLogger().isEnabled(Logger.WARN)) {
-            JSch.getLogger().log(Logger.WARN,
-                    "Permanently added '" + host + "' (" + key_type + ") to the list of known hosts.");
+        if (insert) {
+            log.warn("Permanently added '{}' ({}) to the list of known hosts.", host, key_type);
         }
 
         if (insert) {
@@ -888,10 +867,7 @@ public class Session implements Runnable {
             }
 
             if ((need % s2ccipher_size) != 0) {
-                String message = "Bad packet length " + need;
-                if (JSch.getLogger().isEnabled(Logger.FATAL)) {
-                    JSch.getLogger().log(Logger.FATAL, message);
-                }
+                log.error("Bad packet length {}", need);
                 start_discard(buf, s2ccipher, s2cmac, j, PACKET_MAX_SIZE - s2ccipher_size);
             }
 
@@ -953,10 +929,7 @@ public class Session implements Runnable {
                     buf.getInt();
                     buf.getShort();
                     int reason_id = buf.getInt();
-                    if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                        JSch.getLogger().log(Logger.INFO,
-                                "Received SSH_MSG_UNIMPLEMENTED for " + reason_id);
-                    }
+                    log.info("Received SSH_MSG_UNIMPLEMENTED for {}", reason_id);
                     break;
                 case SSH_MSG_DEBUG:
                     buf.rewind();
@@ -1443,16 +1416,8 @@ public class Session implements Runnable {
                         i = buf.getInt();
                         channel = Channel.getChannel(i, this);
                         if (channel != null) {
-                            //channel.eof_remote=true;
-                            //channel.eof();
                             channel.eof_remote();
                         }
-	  /*
-	  packet.reset();
-	  buf.putByte((byte)SSH_MSG_CHANNEL_EOF);
-	  buf.putInt(channel.getRecipient());
-	  write(packet);
-	  */
                         break;
                     case SSH_MSG_CHANNEL_CLOSE:
                         buf.getInt();
@@ -1460,14 +1425,8 @@ public class Session implements Runnable {
                         i = buf.getInt();
                         channel = Channel.getChannel(i, this);
                         if (channel != null) {
-//	      channel.close();
                             channel.disconnect();
                         }
-	  /*
-          if(Channel.pool.size()==0){
-	    thread=null;
-	  }
-	  */
                         break;
                     case SSH_MSG_CHANNEL_OPEN_CONFIRMATION:
                         buf.getInt();
@@ -1491,8 +1450,6 @@ public class Session implements Runnable {
                         channel = Channel.getChannel(i, this);
                         if (channel != null) {
                             int reason_code = buf.getInt();
-                            //foo=buf.getString();  // additional textual information
-                            //foo=buf.getString();  // language tag
                             channel.setExitStatus(reason_code);
                             channel.close = true;
                             channel.eof_remote = true;
@@ -1529,8 +1486,6 @@ public class Session implements Runnable {
                         if (!"forwarded-tcpip".equals(ctyp) &&
                                 !("x11".equals(ctyp) && x11_forwarding) &&
                                 !("auth-agent@openssh.com".equals(ctyp) && agent_forwarding)) {
-                            //System.err.println("Session.run: CHANNEL OPEN "+ctyp);
-                            //throw new IOException("Session.run: CHANNEL OPEN "+ctyp);
                             packet.reset();
                             buf.putByte((byte) SSH_MSG_CHANNEL_OPEN_FAILURE);
                             buf.putInt(buf.getInt());
@@ -1597,27 +1552,17 @@ public class Session implements Runnable {
                         }
                         break;
                     default:
-                        //System.err.println("Session.run: unsupported type "+msgType);
                         throw new IOException("Unknown SSH message type " + msgType);
                 }
             }
         } catch (Exception e) {
             in_kex = false;
-            if (JSch.getLogger().isEnabled(Logger.INFO)) {
-                JSch.getLogger().log(Logger.INFO,
-                        "Caught an exception, leaving main loop due to " + e.getMessage());
-            }
-            //System.err.println("# Session.run");
-            //e.printStackTrace();
+            log.error("Caught an exception, leaving main loop due to {}" + e.getMessage(), e);
         }
         try {
             disconnect();
         } catch (NullPointerException e) {
-            //System.err.println("@1");
-            //e.printStackTrace();
         } catch (Exception e) {
-            //System.err.println("@2");
-            //e.printStackTrace();
         }
         isConnected = false;
     }
@@ -1626,22 +1571,8 @@ public class Session implements Runnable {
         if (!isConnected) {
             return;
         }
-        //System.err.println(this+": disconnect");
-        //Thread.dumpStack();
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "Disconnecting from " + host + " port " + port);
-        }
-    /*
-    for(int i=0; i<Channel.pool.size(); i++){
-      try{
-        Channel c=((Channel)(Channel.pool.elementAt(i)));
-	if(c.session==this) c.eof();
-      }
-      catch(Exception e){
-      }
-    }
-    */
+
+        log.info("Disconnecting from {} port {}", host, port);
 
         Channel.disconnect(this);
 
@@ -1682,17 +1613,10 @@ public class Session implements Runnable {
                 proxy = null;
             }
         } catch (Exception e) {
-//      e.printStackTrace();
         }
         io = null;
         socket = null;
-//    synchronized(jsch.pool){
-//      jsch.pool.removeElement(this);
-//    }
-
         jsch.removeSession(this);
-
-        //System.gc();
     }
 
     /**
@@ -2081,10 +2005,7 @@ public class Session implements Runnable {
                 write(packet);
             } catch (Exception e) {
                 grr.setThread(null);
-                if (e instanceof Throwable) {
-                    throw new JSchException(e.toString(), e);
-                }
-                throw new JSchException(e.toString());
+                throw new JSchException(e.toString(), e);
             }
 
             int count = 0;
@@ -2421,10 +2342,7 @@ public class Session implements Runnable {
             return null;
         }
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "CheckCiphers: " + ciphers);
-        }
+        log.info("CheckCiphers: {}", ciphers);
 
         String cipherc2s = getConfig("cipher.c2s");
         String ciphers2c = getConfig("cipher.s2c");
@@ -2445,11 +2363,8 @@ public class Session implements Runnable {
         String[] foo = new String[result.size()];
         System.arraycopy(result.toArray(), 0, foo, 0, result.size());
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            for (String aFoo : foo) {
-                JSch.getLogger().log(Logger.INFO,
-                        aFoo + " is not available.");
-            }
+        for (String aFoo : foo) {
+           log.info("{} is not available.", aFoo);
         }
 
         return foo;
@@ -2460,10 +2375,7 @@ public class Session implements Runnable {
             return null;
         }
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "CheckKexes: " + kexes);
-        }
+        log.info("CheckKexes: {}", kexes);
 
         Vector<String> result = new java.util.Vector<>();
         String[] _kexes = Util.split(kexes, ",");
@@ -2478,11 +2390,8 @@ public class Session implements Runnable {
         String[] foo = new String[result.size()];
         System.arraycopy(result.toArray(), 0, foo, 0, result.size());
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            for (String aFoo : foo) {
-                JSch.getLogger().log(Logger.INFO,
-                        aFoo + " is not available.");
-            }
+        for (String aFoo : foo) {
+            log.info("{} is not available.", aFoo);
         }
 
         return foo;
@@ -2493,10 +2402,7 @@ public class Session implements Runnable {
             return null;
         }
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "CheckSignatures: " + sigs);
-        }
+        log.info("CheckSignatures: {}", sigs);
 
         Vector<String> result = new java.util.Vector<>();
         String[] _sigs = Util.split(sigs, ",");
@@ -2514,11 +2420,8 @@ public class Session implements Runnable {
         }
         String[] foo = new String[result.size()];
         System.arraycopy(result.toArray(), 0, foo, 0, result.size());
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            for (String aFoo : foo) {
-                JSch.getLogger().log(Logger.INFO,
-                        aFoo + " is not available.");
-            }
+        for (String aFoo : foo) {
+            log.info("{} is not available.", aFoo);
         }
         return foo;
     }
@@ -2710,46 +2613,6 @@ public class Session implements Runnable {
             channel.setPty(value.equals("yes"));
         }
     }
-
-  /*
-  // setProxyCommand("ssh -l user2 host2 -o 'ProxyCommand ssh user1@host1 nc host2 22' nc %h %p")
-  public void setProxyCommand(String command){
-    setProxy(new ProxyCommand(command));
-  }
-
-  class ProxyCommand implements Proxy {
-    String command;
-    Process p = null;
-    InputStream in = null;
-    OutputStream out = null;
-    ProxyCommand(String command){
-      this.command = command;
-    }
-    public void connect(SocketFactory socket_factory, String host, int port, int timeout) throws Exception {
-      String _command = command.replace("%h", host);
-      _command = _command.replace("%p", new Integer(port).toString());
-      p = Runtime.getRuntime().exec(_command);
-      in = p.getInputStream();
-      out = p.getOutputStream();
-    }
-    public Socket getSocket() { return null; }
-    public InputStream getInputStream() { return in; }
-    public OutputStream getOutputStream() { return out; }
-    public void close() {
-      try{
-        if(p!=null){
-          p.getErrorStream().close();
-          p.getOutputStream().close();
-          p.getInputStream().close();
-          p.destroy();
-          p=null;
-        }
-      }
-      catch(IOException e){
-      }
-    }
-  }
-  */
 
     private void requestPortForwarding() throws JSchException {
 

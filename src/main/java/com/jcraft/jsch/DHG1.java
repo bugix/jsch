@@ -29,7 +29,12 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DHG1 extends KeyExchange {
+
+    private static final Logger log = LoggerFactory.getLogger(DHG1.class);
 
     private static final byte[] g = {2};
     private static final byte[] p = {
@@ -106,12 +111,8 @@ public class DHG1 extends KeyExchange {
         buf.putMPInt(e);
         session.write(packet);
 
-        if (JSch.getLogger().isEnabled(Logger.INFO)) {
-            JSch.getLogger().log(Logger.INFO,
-                    "SSH_MSG_KEXDH_INIT sent");
-            JSch.getLogger().log(Logger.INFO,
-                    "expecting SSH_MSG_KEXDH_REPLY");
-        }
+        log.info("SSH_MSG_KEXDH_INIT sent");
+        log.info("expecting SSH_MSG_KEXDH_REPLY");
 
         state = SSH_MSG_KEXDH_REPLY;
     }

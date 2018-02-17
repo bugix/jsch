@@ -40,15 +40,6 @@ public class JSch {
     public static final String VERSION = "0.1.54";
 
     private static final Hashtable<String, String> config = new Hashtable<>();
-    private static final Logger DEVNULL = new Logger() {
-        public boolean isEnabled(int level) {
-            return false;
-        }
-
-        public void log(int level, String message) {
-        }
-    };
-    static Logger logger = DEVNULL;
 
     static {
         config.put("kex", "ecdh-sha2-nistp256,ecdh-sha2-nistp384,ecdh-sha2-nistp521,diffie-hellman-group14-sha1,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group1-sha1");
@@ -187,23 +178,6 @@ public class JSch {
      */
     public static void setConfig(String key, String value) {
         config.put(key, value);
-    }
-
-    static Logger getLogger() {
-        return logger;
-    }
-
-    /**
-     * Sets the logger
-     *
-     * @param logger logger
-     * @see com.jcraft.jsch.Logger
-     */
-    public static void setLogger(Logger logger) {
-        if (logger == null) {
-            logger = DEVNULL;
-        }
-        JSch.logger = logger;
     }
 
     public synchronized IdentityRepository getIdentityRepository() {

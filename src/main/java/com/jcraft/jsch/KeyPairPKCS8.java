@@ -29,10 +29,16 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigInteger;
 import java.util.Vector;
 
 public class KeyPairPKCS8 extends KeyPair {
+
+    private static final Logger log = LoggerFactory.getLogger(KeyPairPKCS8.class);
+
     private static final byte[] rsaEncryption = {
             (byte) 0x2a, (byte) 0x86, (byte) 0x48, (byte) 0x86,
             (byte) 0xf7, (byte) 0x0d, (byte) 0x01, (byte) 0x01, (byte) 0x01
@@ -341,14 +347,10 @@ or
             Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig(name));
             ciphering = c.newInstance();
         } catch (Exception e) {
-            if (JSch.getLogger().isEnabled(Logger.FATAL)) {
-                String message;
-                if (name == null) {
-                    message = "unknown oid: " + Util.toHex(id);
-                } else {
-                    message = "function " + name + " is not supported";
-                }
-                JSch.getLogger().log(Logger.FATAL, "PKCS8: " + message);
+            if (name == null) {
+                log.error("PKCS8: unknown oid: {}", Util.toHex(id));
+            } else {
+                log.error("PKCS8: function {} is not supported", name);
             }
         }
         return ciphering;

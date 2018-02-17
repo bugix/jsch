@@ -29,11 +29,16 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.PipedOutputStream;
 import java.net.Socket;
 import java.util.Vector;
 
 public class ChannelForwardedTCPIP extends Channel {
+
+    private static final Logger log = LoggerFactory.getLogger(ChannelForwardedTCPIP.class);
 
     private static final Vector<Config> pool = new Vector<>();
 
@@ -299,12 +304,7 @@ public class ChannelForwardedTCPIP extends Channel {
             this.config = getPort(_session, null, port);
         }
 
-        if (this.config == null) {
-            if (JSch.getLogger().isEnabled(Logger.ERROR)) {
-                JSch.getLogger().log(Logger.ERROR,
-                        "ChannelForwardedTCPIP: " + Util.byte2str(addr) + ":" + port + " is not registered.");
-            }
-        }
+        log.error("ChannelForwardedTCPIP: {} : {} is not registered.", Util.byte2str(addr), port);
     }
 
     public int getRemotePort() {
