@@ -67,7 +67,7 @@ public class ChannelDirectTCPIP extends Channel {
                 thread = new Thread(this);
                 thread.setName("DirectTCPIP thread " + _session.getHost());
                 if (_session.daemon_thread) {
-                    thread.setDaemon(_session.daemon_thread);
+                    thread.setDaemon(true);
                 }
                 thread.start();
             } else {

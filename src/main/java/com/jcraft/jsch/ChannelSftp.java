@@ -2423,8 +2423,7 @@ public class ChannelSftp extends ChannelSession {
     }
 
     private void sendRENAME(byte[] p1, byte[] p2) throws Exception {
-        sendPacketPath(SSH_FXP_RENAME, p1, p2,
-                extension_posix_rename ? "posix-rename@openssh.com" : null);
+        sendPacketPath(SSH_FXP_RENAME, p1, p2, extension_posix_rename ? "posix-rename@openssh.com" : null);
     }
 
     private void sendCLOSE(byte[] path) throws Exception {
@@ -2954,8 +2953,7 @@ public class ChannelSftp extends ChannelSession {
                 if (find) {
                     throw new OutOfOrderException(offset);
                 }
-                throw new SftpException(SSH_FX_FAILURE,
-                        "RequestQueue: unknown request id " + id);
+                throw new SftpException(SSH_FX_FAILURE, "RequestQueue: unknown request id " + id);
             }
             rrq[i].id = 0;
             return rrq[i];

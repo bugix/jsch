@@ -109,8 +109,7 @@ public class ChannelForwardedTCPIP extends Channel {
         }
     }
 
-    static void addPort(Session session, String _address_to_bind,
-                        int port, int allocated_port, String target, int lport, SocketFactory factory) throws JSchException {
+    static void addPort(Session session, String _address_to_bind, int port, int allocated_port, String target, int lport, SocketFactory factory) throws JSchException {
         String address_to_bind = normalize(_address_to_bind);
         synchronized (pool) {
             if (getPort(session, address_to_bind, port) != null) {
@@ -128,8 +127,7 @@ public class ChannelForwardedTCPIP extends Channel {
         }
     }
 
-    static void addPort(Session session, String _address_to_bind,
-                        int port, int allocated_port, String daemon, Object[] arg) throws JSchException {
+    static void addPort(Session session, String _address_to_bind, int port, String daemon, Object[] arg) throws JSchException {
         String address_to_bind = normalize(_address_to_bind);
         synchronized (pool) {
             if (getPort(session, address_to_bind, port) != null) {

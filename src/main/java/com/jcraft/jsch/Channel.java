@@ -434,12 +434,7 @@ public abstract class Channel implements Runnable {
                 }
             }
         } catch (Exception e) {
-            //System.err.println("Channel.eof");
-            //e.printStackTrace();
         }
-    /*
-    if(!isConnected()){ disconnect(); }
-    */
     }
 
   /*
@@ -500,7 +495,6 @@ public abstract class Channel implements Runnable {
                 getSession().write(packet);
             }
         } catch (Exception e) {
-            //e.printStackTrace();
         }
     }
 
@@ -509,8 +503,6 @@ public abstract class Channel implements Runnable {
     }
 
     public void disconnect() {
-        //System.err.println(this+":disconnect "+io+" "+connected);
-        //Thread.dumpStack();
 
         try {
 
@@ -532,9 +524,7 @@ public abstract class Channel implements Runnable {
                     io.close();
                 }
             } catch (Exception e) {
-                //e.printStackTrace();
             }
-            // io=null;
         } finally {
             Channel.del(this);
         }

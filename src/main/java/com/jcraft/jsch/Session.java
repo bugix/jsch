@@ -1795,8 +1795,7 @@ public class Session implements Runnable {
      */
     public void setPortForwardingR(String bind_address, int rport, String host, int lport, SocketFactory sf) throws JSchException {
         int allocated = _setPortForwardingR(bind_address, rport);
-        ChannelForwardedTCPIP.addPort(this, bind_address,
-                rport, allocated, host, lport, sf);
+        ChannelForwardedTCPIP.addPort(this, bind_address, rport, allocated, host, lport, sf);
     }
 
     /**
@@ -1853,8 +1852,7 @@ public class Session implements Runnable {
      */
     public void setPortForwardingR(String bind_address, int rport, String daemon, Object[] arg) throws JSchException {
         int allocated = _setPortForwardingR(bind_address, rport);
-        ChannelForwardedTCPIP.addPort(this, bind_address,
-                rport, allocated, daemon, arg);
+        ChannelForwardedTCPIP.addPort(this, bind_address, rport, daemon, arg);
     }
 
     /**
@@ -1959,8 +1957,7 @@ public class Session implements Runnable {
     public int setPortForwardingR(String conf) throws JSchException {
         Forwarding f = parseForwarding(conf);
         int allocated = _setPortForwardingR(f.bind_address, f.port);
-        ChannelForwardedTCPIP.addPort(this, f.bind_address,
-                f.port, allocated, f.host, f.hostport, null);
+        ChannelForwardedTCPIP.addPort(this, f.bind_address, f.port, allocated, f.host, f.hostport, null);
         return allocated;
     }
 

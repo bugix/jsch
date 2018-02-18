@@ -34,6 +34,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.util.Vector;
 
 class Util {
 
@@ -127,7 +128,7 @@ class Util {
             return null;
         }
         byte[] buf = Util.str2byte(foo);
-        java.util.Vector<String> bar = new java.util.Vector<>();
+        Vector<String> bar = new Vector<>();
         int start = 0;
         int index;
         while (true) {

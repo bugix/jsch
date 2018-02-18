@@ -54,11 +54,6 @@ public class KeyPairPKCS8 extends KeyPair {
             (byte) 0x0d, (byte) 0x01, (byte) 0x05, (byte) 0x0d
     };
 
-    private static final byte[] pbkdf2 = {
-            (byte) 0x2a, (byte) 0x86, (byte) 0x48, (byte) 0x86, (byte) 0xf7,
-            (byte) 0x0d, (byte) 0x01, (byte) 0x05, (byte) 0x0c
-    };
-
     private static final byte[] aes128cbc = {
             (byte) 0x60, (byte) 0x86, (byte) 0x48, (byte) 0x01, (byte) 0x65,
             (byte) 0x03, (byte) 0x04, (byte) 0x01, (byte) 0x02
@@ -138,7 +133,7 @@ public class KeyPairPKCS8 extends KeyPair {
 
             byte[] _data = privateKey.getContent();
 
-            KeyPair _kpair = null;
+            KeyPair _kpair;
             if (Util.array_equals(privateKeyAlgorithmID, rsaEncryption)) {
                 _kpair = new KeyPairRSA(jsch);
                 _kpair.copy(this);
@@ -192,7 +187,6 @@ public class KeyPairPKCS8 extends KeyPair {
                 }
             }
         } catch (Exception e) {
-            //System.err.println(e);
             return false;
         }
         return kpair != null;
@@ -262,7 +256,7 @@ or
 
         try {
 
-            ASN1[] contents = null;
+            ASN1[] contents;
             ASN1 asn1 = new ASN1(data);
 
             contents = asn1.getContents();
@@ -274,22 +268,20 @@ or
             byte[] pbesid = contents[0].getContent();
             ASN1 pbesparam = contents[1];
 
-            byte[] salt = null;
-            int iterations = 0;
-            byte[] iv = null;
-            byte[] encryptfuncid = null;
+            byte[] salt;
+            int iterations;
+            byte[] iv;
+            byte[] encryptfuncid;
 
             if (Util.array_equals(pbesid, pbes2)) {
                 contents = pbesparam.getContents();
                 ASN1 pbkdf = contents[0];
                 ASN1 encryptfunc = contents[1];
                 contents = pbkdf.getContents();
-                byte[] pbkdfid = contents[0].getContent();
                 ASN1 pbkdffunc = contents[1];
                 contents = pbkdffunc.getContents();
                 salt = contents[0].getContent();
-                iterations =
-                        Integer.parseInt((new BigInteger(contents[1].getContent())).toString());
+                iterations = Integer.parseInt((new BigInteger(contents[1].getContent())).toString());
 
                 contents = encryptfunc.getContents();
                 encryptfuncid = contents[0].getContent();
