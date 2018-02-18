@@ -560,7 +560,7 @@ public class Session implements Runnable {
             Class<KeyExchange> c = (Class<KeyExchange>) Class.forName(getConfig(guess[KeyExchange.PROPOSAL_KEX_ALGS]));
             kex = (c.newInstance());
         } catch (Exception e) {
-            throw new JSchException(e.toString(), e);
+            throw new JSchException(e.getMessage(), e);
         }
 
         kex.init(this, V_S, V_C, i_S, I_C);

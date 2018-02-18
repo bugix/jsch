@@ -40,7 +40,7 @@ import java.io.PipedOutputStream;
 import java.util.Hashtable;
 import java.util.Vector;
 
-public class ChannelSftp extends ChannelSession {
+public final class ChannelSftp extends ChannelSession {
 
     public static final int SSH_FX_OK = 0;
     public static final int SSH_FX_EOF = 1;

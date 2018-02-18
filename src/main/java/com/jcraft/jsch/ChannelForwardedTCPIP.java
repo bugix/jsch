@@ -36,7 +36,7 @@ import java.io.PipedOutputStream;
 import java.net.Socket;
 import java.util.Vector;
 
-public class ChannelForwardedTCPIP extends Channel {
+public final class ChannelForwardedTCPIP extends Channel {
 
     private static final Logger log = LoggerFactory.getLogger(ChannelForwardedTCPIP.class);
 

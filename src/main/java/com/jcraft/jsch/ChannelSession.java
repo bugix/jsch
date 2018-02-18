@@ -35,18 +35,18 @@ import java.util.Hashtable;
 class ChannelSession extends Channel {
     private static final byte[] _session = Util.str2byte("session");
 
-    protected boolean agent_forwarding = false;
-    protected boolean xforwading = false;
-    protected Hashtable env = null;
+    private boolean agent_forwarding = false;
+    private boolean xforwading = false;
+    private Hashtable env = null;
 
-    protected boolean pty = false;
+    boolean pty = false;
 
-    protected String ttype = "vt100";
-    protected int tcol = 80;
-    protected int trow = 24;
-    protected int twp = 640;
-    protected int thp = 480;
-    protected byte[] terminal_mode = null;
+    private String ttype = "vt100";
+    private int tcol = 80;
+    private int trow = 24;
+    private int twp = 640;
+    private int thp = 480;
+    private byte[] terminal_mode = null;
 
     ChannelSession() {
         super();

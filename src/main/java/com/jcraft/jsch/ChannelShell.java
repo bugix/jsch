@@ -29,7 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-public class ChannelShell extends ChannelSession {
+public final class ChannelShell extends ChannelSession {
 
     ChannelShell() {
         super();

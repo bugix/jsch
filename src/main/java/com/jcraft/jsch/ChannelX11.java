@@ -32,7 +32,7 @@ package com.jcraft.jsch;
 import java.net.Socket;
 import java.util.Hashtable;
 
-class ChannelX11 extends Channel {
+final class ChannelX11 extends Channel {
 
     static private final int LOCAL_WINDOW_SIZE_MAX = 0x20000;
     static private final int LOCAL_MAXIMUM_PACKET_SIZE = 0x4000;

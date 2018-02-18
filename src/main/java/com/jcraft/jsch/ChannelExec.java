@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class ChannelExec extends ChannelSession {
+public final class ChannelExec extends ChannelSession {
 
     private byte[] command = new byte[0];
 

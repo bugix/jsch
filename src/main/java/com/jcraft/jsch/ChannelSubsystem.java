@@ -29,7 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
-public class ChannelSubsystem extends ChannelSession {
+public final class ChannelSubsystem extends ChannelSession {
     private boolean xforwading = false;
     private boolean pty = false;
     private boolean want_reply = true;

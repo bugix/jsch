@@ -54,97 +54,114 @@ public class SignatureDSA implements SigningDSA {
     }
 
     @Override
-    public void setPubKey(byte[] y, byte[] p, byte[] q, byte[] g) throws InvalidKeySpecException, InvalidKeyException {
-        DSAPublicKeySpec dsaPubKeySpec =
+    public void setPubKey(final byte[] y, final byte[] p, final byte[] q, final byte[] g) throws InvalidKeySpecException, InvalidKeyException {
+        final DSAPublicKeySpec dsaPubKeySpec =
                 new DSAPublicKeySpec(new BigInteger(y),
                         new BigInteger(p),
                         new BigInteger(q),
                         new BigInteger(g));
-        PublicKey pubKey = keyFactory.generatePublic(dsaPubKeySpec);
+        final PublicKey pubKey = keyFactory.generatePublic(dsaPubKeySpec);
         signature.initVerify(pubKey);
     }
 
-    public void setPrvKey(byte[] x, byte[] p, byte[] q, byte[] g) throws InvalidKeySpecException, InvalidKeyException {
-        DSAPrivateKeySpec dsaPrivKeySpec =
+    public void setPrvKey(final byte[] x, final byte[] p, final byte[] q, final byte[] g) throws InvalidKeySpecException, InvalidKeyException {
+        final DSAPrivateKeySpec dsaPrivKeySpec =
                 new DSAPrivateKeySpec(new BigInteger(x),
                         new BigInteger(p),
                         new BigInteger(q),
                         new BigInteger(g));
-        PrivateKey prvKey = keyFactory.generatePrivate(dsaPrivKeySpec);
+        final PrivateKey prvKey = keyFactory.generatePrivate(dsaPrivKeySpec);
         signature.initSign(prvKey);
     }
 
     @Override
     public byte[] sign() throws SignatureException {
-        byte[] sig = signature.sign();
+        return fromASN1ToMPINT(signature.sign());
+    }
+
+    @Override
+    public void update(final byte[] foo) throws SignatureException {
+        signature.update(foo);
+    }
+
+    @Override
+    public boolean verify(final byte[] sig) throws SignatureException {
+        return signature.verify(fromMPINTtoASN1(sig));
+    }
+
+    byte[] fromASN1ToMPINT(final byte[] sig) {
         // sig is in ASN.1
         // SEQUENCE::={ r INTEGER, s INTEGER }
-        int len = 0;
-        int index = 3;
-        len = sig[index++] & 0xff;
-        byte[] r = new byte[len];
-        System.arraycopy(sig, index, r, 0, r.length);
-        index = index + len + 1;
-        len = sig[index++] & 0xff;
-        byte[] s = new byte[len];
-        System.arraycopy(sig, index, s, 0, s.length);
+
+        byte[] r = computeMPINT(sig, 3);
+        byte[] s = computeMPINT(sig, 4 + r.length + 1);
 
         byte[] result = new byte[40];
 
         // result must be 40 bytes, but length of r and s may not be 20 bytes
 
-        System.arraycopy(r, (r.length > 20) ? 1 : 0,
-                result, (r.length > 20) ? 0 : 20 - r.length,
-                (r.length > 20) ? 20 : r.length);
-        System.arraycopy(s, (s.length > 20) ? 1 : 0,
-                result, (s.length > 20) ? 20 : 40 - s.length,
-                (s.length > 20) ? 20 : s.length);
+        System.arraycopy(r, r.length > 20 ? 1 : 0, result, r.length > 20 ? 0 : 20 - r.length, r.length > 20 ? 20 : r.length);
+        System.arraycopy(s, s.length > 20 ? 1 : 0, result, s.length > 20 ? 20 : 40 - s.length, s.length > 20 ? 20 : s.length);
 
         return result;
     }
 
-    @Override
-    public void update(byte[] foo) throws SignatureException {
-        signature.update(foo);
+    private byte[] computeMPINT(final byte[] sig, final int index) {
+        int len = sig[index] & 0xff;
+        byte[] result = new byte[len];
+        System.arraycopy(sig, index + 1, result, 0, result.length);
+        return result;
     }
 
-    @Override
-    public boolean verify(byte[] sig) throws SignatureException {
-        int i = 0;
-        int j = 0;
+    byte[] fromMPINTtoASN1(final byte[] input) {
+        byte[] sig = input;
+
         byte[] tmp;
 
-        if (sig[0] == 0 && sig[1] == 0 && sig[2] == 0) {
-            j = ((sig[i++] << 24) & 0xff000000) | ((sig[i++] << 16) & 0x00ff0000) |
-                    ((sig[i++] << 8) & 0x0000ff00) | ((sig[i++]) & 0x000000ff);
+        // 0:0:0:7:73:73:68:2d is the identification string exchange message
+        if (sig[0] == 0 && sig[1] == 0 && sig[2] == 0 && sig[3] == 0x07 && sig[4] == 0x73 && sig[5] == 0x73 && sig[6] == 0x68 && sig[7] == 0x2d) {
+            int i = 0;
+            int j = 0;
+            j = sig[i++] << 24 & 0xff000000 | sig[i++] << 16 & 0x00ff0000 | sig[i++] << 8 & 0x0000ff00 | sig[i++] & 0x000000ff;
             i += j;
-            j = ((sig[i++] << 24) & 0xff000000) | ((sig[i++] << 16) & 0x00ff0000) |
-                    ((sig[i++] << 8) & 0x0000ff00) | ((sig[i++]) & 0x000000ff);
+            j = sig[i++] << 24 & 0xff000000 | sig[i++] << 16 & 0x00ff0000 | sig[i++] << 8 & 0x0000ff00 | sig[i++] & 0x000000ff;
             tmp = new byte[j];
             System.arraycopy(sig, i, tmp, 0, j);
             sig = tmp;
         }
 
-        // ASN.1
-        int frst = ((sig[0] & 0x80) != 0 ? 1 : 0);
-        int scnd = ((sig[20] & 0x80) != 0 ? 1 : 0);
+        final int lengthOfFrst = computeASN1Length(sig, 0);
+        final int lengthOfScnd = computeASN1Length(sig, 20);
 
-        int length = sig.length + 6 + frst + scnd;
+        final int lengthOfFrstMax20 = Math.min(lengthOfFrst, 20);
+        final int lengthOfScndMax20 = Math.min(lengthOfScnd, 20);
+
+        int length = 6 + lengthOfFrst + lengthOfScnd;
         tmp = new byte[length];
-        tmp[0] = (byte) 0x30;
-        tmp[1] = (byte) 0x2c;
-        tmp[1] += frst;
-        tmp[1] += scnd;
-        tmp[2] = (byte) 0x02;
-        tmp[3] = (byte) 0x14;
-        tmp[3] += frst;
-        System.arraycopy(sig, 0, tmp, 4 + frst, 20);
-        tmp[4 + tmp[3]] = (byte) 0x02;
-        tmp[5 + tmp[3]] = (byte) 0x14;
-        tmp[5 + tmp[3]] += scnd;
-        System.arraycopy(sig, 20, tmp, 6 + tmp[3] + scnd, 20);
+        tmp[0] = (byte) 0x30; // ASN.1 SEQUENCE
+        tmp[1] = (byte) (lengthOfFrst + lengthOfScnd + 4); // ASN.1 length of sequence
+        tmp[2] = (byte) 0x02; // ASN.1 INTEGER
+        tmp[3] = (byte) lengthOfFrst; // ASN.1 length of integer
+        System.arraycopy(sig, 20 - lengthOfFrstMax20, tmp, 4 + (lengthOfFrst > 20 ? 1 : 0), lengthOfFrstMax20);
+        tmp[4 + tmp[3]] = (byte) 0x02; // ASN.1 INTEGER
+        tmp[5 + tmp[3]] = (byte) lengthOfScnd; // ASN.1 length of integer
+        System.arraycopy(sig, 20 + 20 - lengthOfScndMax20, tmp, 6 + tmp[3] + (lengthOfScnd > 20 ? 1 : 0), lengthOfScndMax20);
         sig = tmp;
 
-        return signature.verify(sig);
+        return sig;
+    }
+
+    private int computeASN1Length(final byte[] sig, final int index) {
+        int length = 20;
+        if ((sig[index] & 0x80) != 0) {
+            // ASN.1 would see this as negative INTEGER, so we add a leading 0x00 byte.
+            length++;
+        } else {
+            while (sig[index + 20 - length] == 0 && (sig[index + 20 - length + 1] & 0x80) != 0x80) {
+                // The mpint starts with redundant 0x00 bytes.
+                length--;
+            }
+        }
+        return length;
     }
 }

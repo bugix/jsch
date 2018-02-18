@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.util.Vector;
 
 public abstract class Channel implements Runnable {
 
@@ -44,7 +45,7 @@ public abstract class Channel implements Runnable {
     static final int SSH_OPEN_RESOURCE_SHORTAGE = 4;
     private static final int SSH_MSG_CHANNEL_OPEN_CONFIRMATION = 91;
     private static final int SSH_MSG_CHANNEL_OPEN_FAILURE = 92;
-    private static final java.util.Vector<Channel> pool = new java.util.Vector<>();
+    private static final Vector<Channel> pool = new Vector<>();
     private static int index = 0;
     final int id;
     protected byte[] type = Util.str2byte("foo");
@@ -124,7 +125,7 @@ public abstract class Channel implements Runnable {
     }
 
     static void disconnect(Session session) {
-        Channel[] channels = null;
+        Channel[] channels;
         int count = 0;
         synchronized (pool) {
             channels = new Channel[pool.size()];
@@ -641,7 +642,7 @@ public abstract class Channel implements Runnable {
                     long t = timeout == 0L ? 10L : timeout;
                     this.notifyme = 1;
                     wait(t);
-                } catch (java.lang.InterruptedException ignored) {
+                } catch (InterruptedException ignored) {
                 } finally {
                     this.notifyme = 0;
                 }

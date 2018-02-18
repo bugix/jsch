@@ -50,12 +50,12 @@ public class SignatureRSA implements SigningRSA {
 
     @Override
     public void init() throws NoSuchAlgorithmException {
-        signature = java.security.Signature.getInstance("SHA1withRSA");
+        signature = Signature.getInstance("SHA1withRSA");
         keyFactory = KeyFactory.getInstance("RSA");
     }
 
     @Override
-    public void setPubKey(byte[] e, byte[] n) throws InvalidKeySpecException, InvalidKeyException {
+    public void setPubKey(final byte[] e, final byte[] n) throws InvalidKeySpecException, InvalidKeyException {
         RSAPublicKeySpec rsaPubKeySpec =
                 new RSAPublicKeySpec(new BigInteger(n),
                         new BigInteger(e));
@@ -81,22 +81,19 @@ public class SignatureRSA implements SigningRSA {
     }
 
     @Override
-    public boolean verify(byte[] sig) throws SignatureException {
-        int i = 0;
-        int j = 0;
-        byte[] tmp;
-
-        if (sig[0] == 0 && sig[1] == 0 && sig[2] == 0) {
-            j = ((sig[i++] << 24) & 0xff000000) | ((sig[i++] << 16) & 0x00ff0000) |
-                    ((sig[i++] << 8) & 0x0000ff00) | ((sig[i++]) & 0x000000ff);
+    public boolean verify(final byte[] sig) throws SignatureException {
+        // 0:0:0:7:73:73:68:2d is the identification string exchange message
+        if (sig[0] == 0 && sig[1] == 0 && sig[2] == 0 && sig[3] == 0x07 && sig[4] == 0x73 && sig[5] == 0x73 && sig[6] == 0x68 && sig[7] == 0x2d) {
+            int i = 0, j = 0;
+            byte[] tmp;
+            j = sig[i++] << 24 & 0xff000000 | sig[i++] << 16 & 0x00ff0000 | sig[i++] << 8 & 0x0000ff00 | sig[i++] & 0x000000ff;
             i += j;
-            j = ((sig[i++] << 24) & 0xff000000) | ((sig[i++] << 16) & 0x00ff0000) |
-                    ((sig[i++] << 8) & 0x0000ff00) | ((sig[i++]) & 0x000000ff);
+            j = sig[i++] << 24 & 0xff000000 | sig[i++] << 16 & 0x00ff0000 | sig[i++] << 8 & 0x0000ff00 | sig[i++] & 0x000000ff;
             tmp = new byte[j];
             System.arraycopy(sig, i, tmp, 0, j);
-            sig = tmp;
+            return signature.verify(tmp);
+        } else {
+            return signature.verify(sig);
         }
-
-        return signature.verify(sig);
     }
 }
