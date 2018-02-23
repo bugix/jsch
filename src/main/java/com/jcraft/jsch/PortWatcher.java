@@ -86,7 +86,7 @@ class PortWatcher implements Runnable {
         Vector<String> foo = new Vector<>();
         synchronized (pool) {
             for (int i = 0; i < pool.size(); i++) {
-                PortWatcher p = (pool.elementAt(i));
+                PortWatcher p = pool.elementAt(i);
                 if (p.session == session) {
                     foo.addElement(p.lport + ":" + p.host + ":" + p.rport);
                 }
@@ -94,7 +94,7 @@ class PortWatcher implements Runnable {
         }
         String[] bar = new String[foo.size()];
         for (int i = 0; i < foo.size(); i++) {
-            bar[i] = (foo.elementAt(i));
+            bar[i] = foo.elementAt(i);
         }
         return bar;
     }
@@ -108,7 +108,7 @@ class PortWatcher implements Runnable {
         }
         synchronized (pool) {
             for (int i = 0; i < pool.size(); i++) {
-                PortWatcher p = (pool.elementAt(i));
+                PortWatcher p = pool.elementAt(i);
                 if (p.session == session && p.lport == lport) {
                     if ((anyLocalAddress != null && p.boundaddress.equals(anyLocalAddress))
                             || p.boundaddress.equals(addr)) {
@@ -156,7 +156,7 @@ class PortWatcher implements Runnable {
             PortWatcher[] foo = new PortWatcher[pool.size()];
             int count = 0;
             for (int i = 0; i < pool.size(); i++) {
-                PortWatcher p = (pool.elementAt(i));
+                PortWatcher p = pool.elementAt(i);
                 if (p.session == session) {
                     p.delete();
                     foo[count++] = p;

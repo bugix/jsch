@@ -75,12 +75,6 @@ public class ARCFOUR256 implements Ciphering {
         for (int i = 0; i < skip; i++) {
             cipher.update(foo, 0, 1, foo, 0);
         }
-            /*
-        } catch (Exception e) {
-            cipher = null;
-            throw e;
-        }
-        */
     }
 
     @Override

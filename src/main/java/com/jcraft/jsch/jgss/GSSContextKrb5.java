@@ -87,7 +87,7 @@ public class GSSContextKrb5 implements com.jcraft.jsch.GSSContext {
 
             context = mgr.createContext(_host,
                     krb5,
-                    crd,
+                    null,
                     GSSContext.DEFAULT_LIFETIME);
 
             // RFC4462  3.4.  GSS-API Session

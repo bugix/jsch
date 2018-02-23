@@ -29,64 +29,16 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch.jce;
 
-import com.jcraft.jsch.Ciphering;
-
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.ShortBufferException;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-
-public class AES192CTR implements Ciphering {
-    private static final int ivsize = 16;
-    private static final int bsize = 24;
-    private Cipher cipher;
+public class AES192CTR extends AESCTR {
 
     @Override
     public int getIVSize() {
-        return ivsize;
+        return 16;
     }
 
     @Override
     public int getBlockSize() {
-        return bsize;
+        return 24;
     }
 
-    @Override
-    public void init(int mode, byte[] key, byte[] iv) throws InvalidAlgorithmParameterException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException {
-        String pad = "NoPadding";
-        byte[] tmp;
-        if (iv.length > ivsize) {
-            tmp = new byte[ivsize];
-            System.arraycopy(iv, 0, tmp, 0, tmp.length);
-            iv = tmp;
-        }
-        if (key.length > bsize) {
-            tmp = new byte[bsize];
-            System.arraycopy(key, 0, tmp, 0, tmp.length);
-            key = tmp;
-        }
-
-        SecretKeySpec keyspec = new SecretKeySpec(key, "AES");
-        cipher = Cipher.getInstance("AES/CTR/" + pad);
-        synchronized (Cipher.class) {
-            cipher.init((mode == ENCRYPT_MODE ?
-                            Cipher.ENCRYPT_MODE :
-                            Cipher.DECRYPT_MODE),
-                    keyspec, new IvParameterSpec(iv));
-        }
-    }
-
-    @Override
-    public void update(byte[] foo, int s1, int len, byte[] bar, int s2) throws ShortBufferException {
-        cipher.update(foo, s1, len, bar, s2);
-    }
-
-    @Override
-    public boolean isCBC() {
-        return false;
-    }
 }

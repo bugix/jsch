@@ -40,7 +40,7 @@ public interface IdentityRepository {
 
     int getStatus();
 
-    Vector getIdentities();
+    Vector<Identity> getIdentities();
 
     boolean add(byte[] identity);
 
@@ -90,13 +90,13 @@ public interface IdentityRepository {
             ir.removeAll();
         }
 
-        public Vector getIdentities() {
-            Vector result = new Vector();
+        public Vector<Identity> getIdentities() {
+            Vector<Identity> result = new Vector<>();
             for (int i = 0; i < cache.size(); i++) {
-                Identity identity = (cache.elementAt(i));
+                Identity identity = cache.elementAt(i);
                 result.add(identity);
             }
-            Vector tmp = ir.getIdentities();
+            Vector<Identity> tmp = ir.getIdentities();
             for (int i = 0; i < tmp.size(); i++) {
                 result.add(tmp.elementAt(i));
             }

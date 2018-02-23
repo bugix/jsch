@@ -108,15 +108,8 @@ public class Buffer {
         index += 8;
     }
 
-    void skip(int n) {
+    public void skip(int n) {
         index += n;
-    }
-
-    void putPad(int n) {
-        while (n > 0) {
-            buffer[index++] = (byte) 0;
-            n--;
-        }
     }
 
     public void putMPInt(byte[] foo) {
@@ -156,8 +149,8 @@ public class Buffer {
     }
 
     public long getUInt() {
-        long foo = 0L;
-        long bar = 0L;
+        long foo;
+        long bar;
         foo = getByte();
         foo = ((foo << 8) & 0xff00) | (getByte() & 0xff);
         bar = getByte();

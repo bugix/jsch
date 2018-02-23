@@ -64,7 +64,7 @@ public abstract class KeyPair {
     protected boolean encrypted = false;
     protected byte[] data = null;
     int vendor = VENDOR_OPENSSH;
-    JSch jsch = null;
+    JSch jsch;
     private Ciphering ciphering;
     private HASH hash;
     private Randomizing randomizing;
@@ -163,7 +163,7 @@ public abstract class KeyPair {
             String _type = new String(buf.getString()); // ssh-rsa or ssh-dss
             buf.rewind();
 
-            KeyPair kpair = null;
+            KeyPair kpair;
             switch (_type) {
                 case "ssh-rsa":
                     kpair = KeyPairRSA.fromSSHAgent(jsch, buf);
@@ -260,7 +260,6 @@ public abstract class KeyPair {
                     if (Session.checkCipher(JSch.getConfig("aes192-cbc"))) {
                         Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig("aes192-cbc"));
                         ciphering = (c.newInstance());
-                        // key=new byte[ciphering.getBlockSize()];
                         iv = new byte[ciphering.getIVSize()];
                     } else {
                         throw new JSchException("privatekey: aes192-cbc is not available " + prvkey);
@@ -273,7 +272,6 @@ public abstract class KeyPair {
                     if (Session.checkCipher(JSch.getConfig("aes128-cbc"))) {
                         Class<Ciphering> c = (Class<Ciphering>) Class.forName(JSch.getConfig("aes128-cbc"));
                         ciphering = (c.newInstance());
-                        // key=new byte[ciphering.getBlockSize()];
                         iv = new byte[ciphering.getIVSize()];
                     } else {
                         throw new JSchException("privatekey: aes128-cbc is not available " + prvkey);
@@ -791,7 +789,7 @@ public abstract class KeyPair {
             buffer.index = index;
         }
 
-        return (key != null && value != null);
+        return value != null;
     }
 
     abstract void generate(int key_size) throws JSchException;
@@ -1237,7 +1235,7 @@ public abstract class KeyPair {
             return true;
         }
         if (_passphrase == null) {
-            return !encrypted;
+            return false;
         }
         byte[] bar = new byte[_passphrase.length];
         System.arraycopy(_passphrase, 0, bar, 0, bar.length);

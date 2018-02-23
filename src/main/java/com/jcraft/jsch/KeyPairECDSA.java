@@ -196,7 +196,7 @@ public class KeyPairECDSA extends KeyPair {
             }
 
             int index = 0;
-            int length = 0;
+            int length;
 
             if (plain[index] != 0x30) {
                 return false;

@@ -59,7 +59,7 @@ public class Compression implements Compressing {
         int status;
         int outputlen = start;
         byte[] outputbuf = buf;
-        int tmp = 0;
+        int tmp;
 
         do {
             stream.next_out = tmpbuf;

@@ -252,7 +252,7 @@ public final class ChannelSftp extends ChannelSession {
                         "Received message is too long: " + length);
             }
             server_version = header.rid;
-            extensions = new java.util.Hashtable<>();
+            extensions = new Hashtable<>();
             if (length > 0) {
                 // extension data
                 fill(buf, length);
@@ -377,8 +377,6 @@ public final class ChannelSftp extends ChannelSession {
                 if (vsize == 0) {
                     if (isPattern(dst)) {
                         throw new SftpException(SSH_FX_FAILURE, dst);
-                    } else {
-                        dst = Util.unquote(dst);
                     }
                 }
                 throw new SftpException(SSH_FX_FAILURE, v.toString());
@@ -587,7 +585,7 @@ public final class ChannelSftp extends ChannelSession {
             int startid = seq;
             int ackcount = 0;
             int _s = 0;
-            int _datalen = 0;
+            int _datalen;
 
             if (!dontcopy) {  // This case will not work anymore.
                 _datalen = data.length;
@@ -600,7 +598,7 @@ public final class ChannelSftp extends ChannelSession {
             int bulk_requests = rq.size();
 
             while (true) {
-                int nread = 0;
+                int nread;
                 int count = 0;
                 int s = _s;
                 int datalen = _datalen;
@@ -922,8 +920,8 @@ public final class ChannelSftp extends ChannelSession {
                     }
                     _dst = dstsb.toString();
                     if (_dst.contains("..")) {
-                        String dstc = (new java.io.File(dst)).getCanonicalPath();
-                        String _dstc = (new java.io.File(_dst)).getCanonicalPath();
+                        String dstc = (new File(dst)).getCanonicalPath();
+                        String _dstc = (new File(_dst)).getCanonicalPath();
                         if (!(_dstc.length() > dstc.length() &&
                                 _dstc.substring(0, dstc.length() + 1).equals(dstc + file_separator))) {
                             throw new SftpException(SSH_FX_FAILURE,
@@ -1016,10 +1014,7 @@ public final class ChannelSftp extends ChannelSession {
             if (e instanceof SftpException) {
                 throw (SftpException) e;
             }
-            if (e instanceof Throwable) {
-                throw new SftpException(SSH_FX_FAILURE, "", e);
-            }
-            throw new SftpException(SSH_FX_FAILURE, "");
+            throw new SftpException(SSH_FX_FAILURE, "", e);
         }
     }
 
@@ -1073,7 +1068,7 @@ public final class ChannelSftp extends ChannelSession {
                 length = header.length;
                 type = header.type;
 
-                RequestQueue.Request rr = null;
+                RequestQueue.Request rr;
                 try {
                     rr = rq.get(header.rid);
                 } catch (RequestQueue.OutOfOrderException e) {
@@ -1585,7 +1580,7 @@ public final class ChannelSftp extends ChannelSession {
                         if (f == null) {
                             f = Util.byte2str(filename, fEncoding);
                         }
-                        String l = null;
+                        String l;
                         if (longname == null) {
                             // TODO: we need to generate long name from attrs
                             //       for the sftp protocol 4(and later).
@@ -2313,7 +2308,7 @@ public final class ChannelSftp extends ChannelSession {
     }
 
     private void read(byte[] buf, int s, int l) throws IOException, SftpException {
-        int i = 0;
+        int i;
         while (l > 0) {
             i = io_in.read(buf, s, l);
             if (i <= 0) {
@@ -2543,7 +2538,7 @@ public final class ChannelSftp extends ChannelSession {
 
     private Vector<String> glob_remote(String _path) throws Exception {
         Vector<String> v = new Vector<>();
-        int i = 0;
+        int i;
 
         int foo = _path.lastIndexOf('/');
         if (foo < 0) {  // it is not absolute path.
@@ -2556,7 +2551,7 @@ public final class ChannelSftp extends ChannelSession {
 
         dir = Util.unquote(dir);
 
-        byte[] pattern = null;
+        byte[] pattern;
         byte[][] _pattern_utf8 = new byte[1][];
         boolean pattern_has_wildcard = isPattern(_pattern, _pattern_utf8);
 
@@ -2610,7 +2605,6 @@ public final class ChannelSftp extends ChannelSession {
             int count = buf.getInt();
 
             byte[] str;
-            int flags;
 
             buf.reset();
             while (count > 0) {
@@ -2627,9 +2621,9 @@ public final class ChannelSftp extends ChannelSession {
 
                 byte[] filename = buf.getString();
                 if (server_version <= 3) {
-                    str = buf.getString();  // longname
+                    buf.getString();  // longname
                 }
-                SftpATTRS attrs = SftpATTRS.getATTR(buf);
+                SftpATTRS.getATTR(buf);
 
                 byte[] _filename = filename;
                 String f = null;
@@ -2904,7 +2898,7 @@ public final class ChannelSftp extends ChannelSession {
     }
 
     private class RequestQueue {
-        Request[] rrq;
+        final Request[] rrq;
         int head, count;
 
         RequestQueue(int size) {

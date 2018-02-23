@@ -146,8 +146,8 @@ public class DHG14 extends KeyExchange {
                 // string    server public host key and certificates (K_S)
                 // mpint     f
                 // string    signature of H
-                j = _buf.getInt();
-                j = _buf.getByte();
+                _buf.getInt();
+                _buf.getByte();
                 j = _buf.getByte();
                 if (j != 31) {
                     System.err.println("type: must be 31 " + j);
@@ -192,7 +192,6 @@ public class DHG14 extends KeyExchange {
                 H = sha.digest();
 
                 i = 0;
-                j = 0;
                 j = ((K_S[i++] << 24) & 0xff000000) | ((K_S[i++] << 16) & 0x00ff0000) |
                         ((K_S[i++] << 8) & 0x0000ff00) | ((K_S[i++]) & 0x000000ff);
                 String alg = Util.byte2str(K_S, i, j);

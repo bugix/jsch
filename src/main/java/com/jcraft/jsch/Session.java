@@ -39,6 +39,7 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Properties;
 import java.util.Vector;
 
 public class Session implements Runnable {
@@ -101,7 +102,7 @@ public class Session implements Runnable {
     Runnable thread;
     private String[] guess = null;
     private SocketFactory socket_factory = null;
-    private String org_host;
+    private final String org_host;
     private String username;
     private byte[] V_S; // server version
     private byte[] V_C = Util.str2byte("SSH-2.0-JSCH-" + JSch.VERSION); // client version
@@ -202,7 +203,7 @@ public class Session implements Runnable {
                 Class<Randomizing> c = (Class<Randomizing>) Class.forName(getConfig("random"));
                 randomizing = c.newInstance();
             } catch (Exception e) {
-                throw new JSchException(e.toString(), e);
+                throw new JSchException(e.getMessage(), e);
             }
         }
         Packet.setRandomizing(randomizing);
@@ -320,7 +321,7 @@ public class Session implements Runnable {
                     boolean result = kex.next(buf);
                     if (!result) {
                         in_kex = false;
-                        throw new JSchException("verify: " + result);
+                        throw new JSchException("verify: false");
                     }
                 } else {
                     in_kex = false;
@@ -488,7 +489,7 @@ public class Session implements Runnable {
                     connectThread = new Thread(this);
                     connectThread.setName("Connect thread " + host + " session");
                     if (daemon_thread) {
-                        connectThread.setDaemon(daemon_thread);
+                        connectThread.setDaemon(true);
                     }
                     connectThread.start();
 
@@ -684,7 +685,7 @@ public class Session implements Runnable {
             hostkey = new HostKey(chost, K_S);
         }
 
-        int i = 0;
+        int i;
         synchronized (hkr) {
             i = hkr.check(chost, K_S);
         }
@@ -1278,7 +1279,7 @@ public class Session implements Runnable {
         byte[] foo;
         Buffer buf = new Buffer();
         Packet packet = new Packet(buf);
-        int i = 0;
+        int i;
         Channel channel;
         int[] start = new int[1];
         int[] length = new int[1];
@@ -1530,7 +1531,7 @@ public class Session implements Runnable {
                     case SSH_MSG_GLOBAL_REQUEST:
                         buf.getInt();
                         buf.getShort();
-                        foo = buf.getString();       // request name
+                        buf.getString();       // request name
                         reply = (buf.getByte() != 0);
                         if (reply) {
                             packet.reset();
@@ -1693,7 +1694,7 @@ public class Session implements Runnable {
         Thread tmp = new Thread(pw);
         tmp.setName("PortWatcher Thread for " + host);
         if (daemon_thread) {
-            tmp.setDaemon(daemon_thread);
+            tmp.setDaemon(true);
         }
         tmp.start();
         return pw.lport;
@@ -2139,18 +2140,25 @@ public class Session implements Runnable {
         }
     }
 
-    public void setConfig(java.util.Properties newconf) {
-        setConfig((java.util.Hashtable) newconf);
+    public void setConfig(Properties newconf) {
+
+        Hashtable<String, String> newConfigHashtable = new Hashtable<>();
+
+        for (String key : newconf.stringPropertyNames()) {
+            newConfigHashtable.put(key, newconf.getProperty(key));
+        }
+
+        setConfig(newConfigHashtable);
     }
 
-    public void setConfig(java.util.Hashtable newconf) {
+    public void setConfig(Hashtable<String, String> newconf) {
         synchronized (lock) {
             if (config == null) {
                 config = new Hashtable<>();
             }
-            for (Enumeration e = newconf.keys(); e.hasMoreElements(); ) {
-                String key = (String) (e.nextElement());
-                config.put(key, (String) (newconf.get(key)));
+            for (Enumeration<String> e = newconf.keys(); e.hasMoreElements(); ) {
+                String key = e.nextElement();
+                config.put(key, newconf.get(key));
             }
         }
     }
@@ -2345,6 +2353,7 @@ public class Session implements Runnable {
         String ciphers2c = getConfig("cipher.s2c");
 
         Vector<String> result = new Vector<>();
+
         String[] _ciphers = Util.split(ciphers, ",");
         for (String cipher : _ciphers) {
             if (!ciphers2c.contains(cipher) && !cipherc2s.contains(cipher)) {
@@ -2374,7 +2383,7 @@ public class Session implements Runnable {
 
         log.info("CheckKexes: {}", kexes);
 
-        Vector<String> result = new java.util.Vector<>();
+        Vector<String> result = new Vector<>();
         String[] _kexes = Util.split(kexes, ",");
         for (String _kexe : _kexes) {
             if (!checkKex(this, getConfig(_kexe))) {
@@ -2441,7 +2450,7 @@ public class Session implements Runnable {
      * Sets the identityRepository, which will be referred
      * in the public key authentication.  The default value is <code>null</code>.
      *
-     * @param identityRepository
+     * @param identityRepository IdentityRepository
      * @see #getIdentityRepository()
      */
     public void setIdentityRepository(IdentityRepository identityRepository) {
@@ -2463,13 +2472,13 @@ public class Session implements Runnable {
     }
 
     /**
-     * Sets the hostkeyRepository, which will be referred in checking host keys.
+     * Sets the hostKeyRepository, which will be referred in checking host keys.
      *
-     * @param hostkeyRepository
+     * @param hostKeyRepository
      * @see #getHostKeyRepository()
      */
-    public void setHostKeyRepository(HostKeyRepository hostkeyRepository) {
-        this.hostkeyRepository = hostkeyRepository;
+    public void setHostKeyRepository(HostKeyRepository hostKeyRepository) {
+        this.hostkeyRepository = hostKeyRepository;
     }
 
     private void applyConfig() throws JSchException {
@@ -2478,10 +2487,9 @@ public class Session implements Runnable {
             return;
         }
 
-        ConfigRepository.Config config =
-                configRepository.getConfig(org_host);
+        ConfigRepository.Config config = configRepository.getConfig(org_host);
 
-        String value = null;
+        String value;
 
         value = config.getUser();
         if (value != null) {
@@ -2598,7 +2606,7 @@ public class Session implements Runnable {
         ConfigRepository.Config config =
                 configRepository.getConfig(org_host);
 
-        String value = null;
+        String value;
 
         value = config.getValue("ForwardAgent");
         if (value != null) {

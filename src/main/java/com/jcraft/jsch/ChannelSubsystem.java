@@ -29,6 +29,9 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package com.jcraft.jsch;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 public final class ChannelSubsystem extends ChannelSession {
     private boolean xforwading = false;
     private boolean pty = false;
@@ -86,7 +89,7 @@ public final class ChannelSubsystem extends ChannelSession {
         io.setOutputStream(getSession().out);
     }
 
-    public java.io.InputStream getErrStream() throws java.io.IOException {
+    public InputStream getErrStream() throws IOException {
         return getExtInputStream();
     }
 

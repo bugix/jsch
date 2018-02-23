@@ -66,7 +66,7 @@ class UserAuthNone extends UserAuth {
             return false;
         }
 
-        byte[] _username = null;
+        byte[] _username;
         _username = Util.str2byte(username);
 
         // send

@@ -220,7 +220,6 @@ public abstract class KeyExchange {
                         ((K_S[i++] << 8) & 0x0000ff00) | ((K_S[i++]) & 0x000000ff);
                 tmp = new byte[j];
                 System.arraycopy(K_S, i, tmp, 0, j);
-                i += j;
                 n = tmp;
 
                 SigningRSA sig = null;
@@ -240,7 +239,7 @@ public abstract class KeyExchange {
                 break;
             }
             case "ssh-dss": {
-                byte[] q = null;
+                byte[] q;
                 byte[] tmp;
                 byte[] p;
                 byte[] g;
@@ -271,7 +270,6 @@ public abstract class KeyExchange {
                         ((K_S[i++] << 8) & 0x0000ff00) | ((K_S[i++]) & 0x000000ff);
                 tmp = new byte[j];
                 System.arraycopy(K_S, i, tmp, 0, j);
-                i += j;
                 f = tmp;
 
                 SigningDSA sig = null;
@@ -315,7 +313,6 @@ public abstract class KeyExchange {
                 r = tmp;
                 tmp = new byte[(j - 1) / 2];
                 System.arraycopy(K_S, i, tmp, 0, tmp.length);
-                i += (j - 1) / 2;
                 s = tmp;
 
                 SigningECDSA sig = null;

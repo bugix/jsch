@@ -63,7 +63,7 @@ public class ARCFOUR implements Ciphering {
             key = tmp;
         }
 
-        cipher = javax.crypto.Cipher.getInstance("RC4");
+        cipher = Cipher.getInstance("RC4");
         SecretKeySpec _key = new SecretKeySpec(key, "RC4");
         synchronized (Cipher.class) {
             cipher.init((mode == ENCRYPT_MODE ?

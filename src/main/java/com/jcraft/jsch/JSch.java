@@ -334,12 +334,12 @@ public class JSch {
     /**
      * Sets the hostkey repository.
      *
-     * @param hkrepo
+     * @param hostKeyRepository HostKeyRepository
      * @see com.jcraft.jsch.HostKeyRepository
      * @see com.jcraft.jsch.KnownHosts
      */
-    public void setHostKeyRepository(HostKeyRepository hkrepo) {
-        known_hosts = hkrepo;
+    public void setHostKeyRepository(HostKeyRepository hostKeyRepository) {
+        known_hosts = hostKeyRepository;
     }
 
     /**
@@ -465,7 +465,6 @@ public class JSch {
      * Removes the identity from identityRepository.
      *
      * @param identity the indentity to be removed.
-     * @throws JSchException if <code>identity</code> is invalid.
      */
     public void removeIdentity(Identity identity) {
         identityRepository.remove(identity.getPublicKeyBlob());
@@ -475,13 +474,12 @@ public class JSch {
      * Lists names of identities included in the identityRepository.
      *
      * @return names of identities
-     * @throws JSchException if identityReposory has problems.
      */
     public Vector<String> getIdentityNames() {
         Vector<String> foo = new Vector<>();
-        Vector identities = identityRepository.getIdentities();
+        Vector<Identity> identities = identityRepository.getIdentities();
         for (int i = 0; i < identities.size(); i++) {
-            Identity identity = (Identity) (identities.elementAt(i));
+            Identity identity = identities.elementAt(i);
             foo.addElement(identity.getName());
         }
         return foo;
@@ -489,8 +487,6 @@ public class JSch {
 
     /**
      * Removes all identities from identityRepository.
-     *
-     * @throws JSchException if identityReposory has problems.
      */
     public void removeAllIdentity() {
         identityRepository.removeAll();

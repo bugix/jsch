@@ -37,7 +37,7 @@ class ChannelSession extends Channel {
 
     private boolean agent_forwarding = false;
     private boolean xforwading = false;
-    private Hashtable env = null;
+    private Hashtable<byte[], byte[]> env = null;
 
     boolean pty = false;
 
@@ -57,7 +57,7 @@ class ChannelSession extends Channel {
     /**
      * Enable the agent forwarding.
      *
-     * @param enable
+     * @param enable enable the agent forwarding
      */
     public void setAgentForwarding(boolean enable) {
         agent_forwarding = enable;
@@ -67,7 +67,7 @@ class ChannelSession extends Channel {
      * Enable the X11 forwarding.
      * Refer to RFC4254 6.3.1. Requesting X11 Forwarding.
      *
-     * @param enable
+     * @param enable enable the X11 forwarding
      */
     public void setXForwarding(boolean enable) {
         xforwading = enable;
@@ -101,9 +101,9 @@ class ChannelSession extends Channel {
         }
     }
 
-    private Hashtable getEnv() {
+    private Hashtable<byte[], byte[]> getEnv() {
         if (env == null) {
-            env = new Hashtable();
+            env = new Hashtable<>();
         }
         return env;
     }
@@ -112,7 +112,7 @@ class ChannelSession extends Channel {
      * Allocate a Pseudo-Terminal.
      * Refer to RFC4254 6.2. Requesting a Pseudo-Terminal.
      *
-     * @param enable
+     * @param enable enabled
      */
     public void setPty(boolean enable) {
         pty = enable;
@@ -121,7 +121,7 @@ class ChannelSession extends Channel {
     /**
      * Set the terminal mode.
      *
-     * @param terminal_mode
+     * @param terminal_mode terminal mode
      */
     public void setTerminalMode(byte[] terminal_mode) {
         this.terminal_mode = terminal_mode;
@@ -202,28 +202,20 @@ class ChannelSession extends Channel {
         }
 
         if (env != null) {
-            for (Enumeration _env = env.keys(); _env.hasMoreElements(); ) {
-                Object name = _env.nextElement();
-                Object value = env.get(name);
+            for (Enumeration<byte[]> _env = env.keys(); _env.hasMoreElements(); ) {
+                byte[] name = _env.nextElement();
+                byte[] value = env.get(name);
                 request = new RequestEnv();
-                ((RequestEnv) request).setEnv(toByteArray(name),
-                        toByteArray(value));
+                ((RequestEnv) request).setEnv(name, value);
                 request.request(_session, this);
             }
         }
     }
 
-    private byte[] toByteArray(Object o) {
-        if (o instanceof String) {
-            return Util.str2byte((String) o);
-        }
-        return (byte[]) o;
-    }
-
     public void run() {
         Buffer buf = new Buffer(rmpsize);
         Packet packet = new Packet(buf);
-        int i = -1;
+        int i;
         try {
             while (isConnected() &&
                     thread != null &&

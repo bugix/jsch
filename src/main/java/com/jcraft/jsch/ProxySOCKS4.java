@@ -115,7 +115,6 @@ public class ProxySOCKS4 implements Proxy {
    of all zero bits.
 */
 
-            index = 0;
             buf[index++] = 4;
             buf[index++] = 1;
 

@@ -162,7 +162,7 @@ public class SignatureECDSA implements SigningECDSA {
             r = insert0(r);
             s = insert0(s);
 
-            byte[] asn1 = null;
+            byte[] asn1;
             if (r.length < 64) {
                 asn1 = new byte[6 + r.length + s.length];
                 asn1[0] = (byte) 0x30;

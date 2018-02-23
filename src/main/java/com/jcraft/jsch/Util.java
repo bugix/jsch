@@ -524,8 +524,7 @@ class Util {
     static byte[] fromFile(String _file) throws IOException {
         _file = checkTilde(_file);
         File file = new File(_file);
-        FileInputStream fis = new FileInputStream(_file);
-        try {
+        try (FileInputStream fis = new FileInputStream(_file)) {
             byte[] result = new byte[(int) (file.length())];
             int len = 0;
             while (true) {
@@ -537,10 +536,6 @@ class Util {
             }
             fis.close();
             return result;
-        } finally {
-            if (fis != null) {
-                fis.close();
-            }
         }
     }
 }

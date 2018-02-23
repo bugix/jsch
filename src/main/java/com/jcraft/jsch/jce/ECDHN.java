@@ -68,7 +68,6 @@ public class ECDHN implements ECDH {
     }
 
     public byte[] getSecret(byte[] r, byte[] s) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException {
-
         KeyFactory kf = KeyFactory.getInstance("EC");
         ECPoint w = new ECPoint(new BigInteger(1, r), new BigInteger(1, s));
         ECPublicKeySpec spec = new ECPublicKeySpec(w, publicKey.getParams());

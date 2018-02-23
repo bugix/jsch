@@ -73,12 +73,12 @@ public class TripleDESCTR implements Ciphering {
             key = tmp;
         }
 
-        cipher = javax.crypto.Cipher.getInstance("DESede/CTR/" + pad);
+        cipher = Cipher.getInstance("DESede/CTR/" + pad);
 
         DESedeKeySpec keyspec = new DESedeKeySpec(key);
         SecretKeyFactory keyfactory = SecretKeyFactory.getInstance("DESede");
         SecretKey _key = keyfactory.generateSecret(keyspec);
-        synchronized (javax.crypto.Cipher.class) {
+        synchronized (Cipher.class) {
             cipher.init((mode == ENCRYPT_MODE ?
                             javax.crypto.Cipher.ENCRYPT_MODE :
                             javax.crypto.Cipher.DECRYPT_MODE),

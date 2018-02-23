@@ -115,7 +115,7 @@ public class KeyPairPKCS8 extends KeyPair {
         try {
             Vector<byte[]> values = new Vector<>();
 
-            ASN1[] contents = null;
+            ASN1[] contents;
             ASN1 asn1 = new ASN1(plain);
             contents = asn1.getContents();
 

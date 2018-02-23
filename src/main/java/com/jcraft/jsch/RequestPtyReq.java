@@ -38,9 +38,6 @@ class RequestPtyReq extends Request {
 
     private byte[] terminal_mode = Util.empty;
 
-    void setCode(String cookie) {
-    }
-
     void setTType(String ttype) {
         this.ttype = ttype;
     }

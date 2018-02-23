@@ -91,7 +91,7 @@ public class ChannelDirectTCPIP extends Channel {
             Buffer buf = new Buffer(rmpsize);
             Packet packet = new Packet(buf);
             Session _session = getSession();
-            int i = 0;
+            int i;
 
             while (isConnected() &&
                     thread != null &&

@@ -228,7 +228,7 @@ public class KnownHosts implements HostKeyRepository {
                     break;
                 }
 
-                /**
+                /*
                  "man sshd" has following descriptions,
                  Note that the lines in these files are typically hundreds
                  of characters long, and you definitely don't want to type

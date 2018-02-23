@@ -147,7 +147,7 @@ final class ChannelX11 extends Channel {
         thread = Thread.currentThread();
         Buffer buf = new Buffer(rmpsize);
         Packet packet = new Packet(buf);
-        int i = 0;
+        int i;
         try {
             while (thread != null &&
                     io != null &&

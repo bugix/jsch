@@ -49,7 +49,7 @@ public class KeyPairGenECDSA implements com.jcraft.jsch.KeyPairGenECDSA {
 
     @Override
     public void init(int key_size) throws JSchException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        String name = null;
+        String name;
         switch (key_size) {
             case 256:
                 name = "secp256r1";

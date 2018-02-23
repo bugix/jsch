@@ -248,7 +248,7 @@ public final class ChannelForwardedTCPIP extends Channel {
         thread = Thread.currentThread();
         Buffer buf = new Buffer(rmpsize);
         Packet packet = new Packet(buf);
-        int i = 0;
+        int i;
         try {
             Session _session = getSession();
             while (thread != null &&

@@ -103,8 +103,8 @@ public abstract class DHECN extends KeyExchange {
                 // string   K_S, server's public host key
                 // string   Q_S, server's ephemeral public key octet string
                 // string   the signature on the exchange hash
-                j = _buf.getInt();
-                j = _buf.getByte();
+                _buf.getInt();
+                _buf.getByte();
                 j = _buf.getByte();
                 if (j != 31) {
                     System.err.println("type: must be 31 " + j);
@@ -161,7 +161,6 @@ public abstract class DHECN extends KeyExchange {
                 H = sha.digest();
 
                 i = 0;
-                j = 0;
                 j = ((K_S[i++] << 24) & 0xff000000) | ((K_S[i++] << 16) & 0x00ff0000) |
                         ((K_S[i++] << 8) & 0x0000ff00) | ((K_S[i++]) & 0x000000ff);
                 String alg = Util.byte2str(K_S, i, j);

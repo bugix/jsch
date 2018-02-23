@@ -36,7 +36,7 @@ class UserAuthPublicKey extends UserAuth {
     public boolean start(Session session) throws Exception {
         super.start(session);
 
-        Vector identities = session.getIdentityRepository().getIdentities();
+        Vector<Identity> identities = session.getIdentityRepository().getIdentities();
 
         byte[] passphrase = null;
         byte[] _username;
@@ -56,7 +56,7 @@ class UserAuthPublicKey extends UserAuth {
                     return false;
                 }
 
-                Identity identity = (Identity) (identities.elementAt(i));
+                Identity identity = identities.elementAt(i);
                 byte[] pubkeyblob = identity.getPublicKeyBlob();
 
                 if (pubkeyblob != null) {
@@ -111,7 +111,7 @@ class UserAuthPublicKey extends UserAuth {
 
                 int count = 5;
                 while (true) {
-                    if ((identity.isEncrypted() && passphrase == null)) {
+                    if (identity.isEncrypted()) {
                         if (userinfo == null) {
                             throw new JSchException("USERAUTH fail");
                         }
